@@ -74,6 +74,10 @@ function taille_format($taille)
 		
 		<link href="assets/css/animate.min.css" rel="stylesheet">
 
+		<link rel="icon" href="assets/img/logo.png" />
+
+		<link rel="manifest" href="/app.webmanifest">
+
 	    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 	    <meta charset="utf-8" />
 	    

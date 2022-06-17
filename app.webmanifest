@@ -1,0 +1,23 @@
+{
+    "name": "Shasha",
+    "short_name": "Shasha",
+    "theme_color": "blue",
+    "background_color": "white",
+    "start_url": "./",
+    "id": "shasha",
+    "display": "standalone",
+    "scope": "./",
+    "icons": [
+        {
+            "src": "assets/img/logo.png",
+            "type": "image/png",
+            "sizes": "512x512"
+        },
+        {
+            "src": "assets/img/logo.png",
+            "type": "image/png",
+            "sizes": "512x512",
+            "purpose": "maskable"
+        }
+    ]
+}
