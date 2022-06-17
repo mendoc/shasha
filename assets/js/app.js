@@ -10,6 +10,7 @@ async function checkRegistration() {
             log("Service worker was registered on page load")
         } else {
             log("No service worker is currently registered")
+            register()
         }
     } else {
         log("Service workers API not available");
