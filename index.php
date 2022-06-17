@@ -176,6 +176,7 @@ function taille_format($taille)
 		
 		<!-- Firebase -->
 		<script src="https://www.gstatic.com/firebasejs/3.7.3/firebase.js"></script>
-		<script src="assets/js/main.v2.js"></script>
+		<script src="assets/js/main.js"></script>
+		<script src="assets/js/app.js"></script>
 	</body>
 </html>
