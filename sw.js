@@ -1,4 +1,4 @@
-const cacheName = 'shasha-1-00-01';
+const cacheName = 'shasha-1-00-02';
 const assets = [
     '/assets/css/animate.min.css',
     '/assets/img/logo.png',
