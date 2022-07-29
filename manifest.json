@@ -1,23 +1,62 @@
 {
+    "lang": "fr",
     "name": "Shasha",
     "short_name": "Shasha",
+    "description": "Partager vos fichiers et contenus en toute simplicité",
     "theme_color": "blue",
     "background_color": "white",
-    "start_url": "./",
+    "start_url": "/?utm_medium=PWA&utm_source=launcher",
     "id": "shasha",
     "display": "standalone",
-    "scope": "./",
+    "orientation": "any",
+    "scope": "/",
+    "categories": [
+        "productivity",
+        "utilities"
+    ],
     "icons": [
         {
-            "src": "assets/img/logo.png",
+            "src": "/assets/img/logo.png",
             "type": "image/png",
             "sizes": "512x512"
         },
         {
-            "src": "assets/img/logo.png",
+            "src": "/assets/img/logo-maskable.png",
             "type": "image/png",
             "sizes": "512x512",
             "purpose": "maskable"
         }
-    ]
+    ],
+    "screenshots": [
+        {
+            "src": "/assets/img/screenshot-1-719x1405.png",
+            "type": "image/png",
+            "sizes": "719x1405"
+        },
+        {
+            "src": "/assets/img/screenshot-2-719x1403.png",
+            "type": "image/jpeg",
+            "sizes": "719x1403"
+        },
+        {
+            "src": "/assets/img/screenshot-3-720x1412.png",
+            "type": "image/jpeg",
+            "sizes": "720x1412"
+        }
+    ],
+    "share_target": {
+        "action": "/?utm_medium=PWA&utm_source=share-target&share-target",
+        "method": "POST",
+        "enctype": "multipart/form-data",
+        "params": {
+            "files": [
+                {
+                    "name": "file",
+                    "accept": [
+                        "*/*"
+                    ]
+                }
+            ]
+        }
+    }
 }

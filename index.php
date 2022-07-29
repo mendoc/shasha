@@ -65,7 +65,7 @@ function taille_format($taille)
 <!DOCTYPE html>
 <html>
 	<head>
-	    <title>Plateforme de partage</title>
+	    <title>Shasha | Plateforme de partage</title>
 	    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css" integrity="sha384-zCbKRCUGaJDkqS1kPbPd7TveP5iyJE0EjAuZQTgFLD2ylzuqKfdKlfG/eSrtxUkn" crossorigin="anonymous">
 
 	    <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -76,7 +76,7 @@ function taille_format($taille)
 
 		<link rel="icon" href="assets/img/logo.png" />
 
-		<link rel="manifest" href="/app.webmanifest">
+		<link rel="manifest" href="/manifest.json" />
 
 	    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 	    <meta charset="utf-8" />
