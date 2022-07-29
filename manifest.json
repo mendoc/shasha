@@ -2,8 +2,8 @@
     "lang": "fr",
     "name": "Shasha",
     "short_name": "Shasha",
-    "description": "Partager vos fichiers et contenus en toute simplicité",
-    "theme_color": "blue",
+    "description": "Partagez vos fichiers et contenus en toute simplicité.",
+    "theme_color": "#004aad",
     "background_color": "white",
     "start_url": "/?utm_medium=PWA&utm_source=launcher",
     "id": "shasha",
@@ -29,19 +29,25 @@
     ],
     "screenshots": [
         {
-            "src": "/assets/img/screenshot-1-719x1405.png",
+            "src": "/assets/img/screenshot-1-710x1300.png",
             "type": "image/png",
-            "sizes": "719x1405"
+            "sizes": "710x1300",
+            "platform": "narrow",
+            "label": "Partager du texte et des fichiers"
         },
         {
-            "src": "/assets/img/screenshot-2-719x1403.png",
+            "src": "/assets/img/screenshot-2-710x1300.png",
             "type": "image/jpeg",
-            "sizes": "719x1403"
+            "sizes": "710x1300",
+            "platform": "narrow",
+            "label": "Détection automatique de lien dans le texte."
         },
         {
-            "src": "/assets/img/screenshot-3-720x1412.png",
+            "src": "/assets/img/screenshot-3-710x1300.png",
             "type": "image/jpeg",
-            "sizes": "720x1412"
+            "sizes": "710x1300",
+            "platform": "narrow",
+            "label": "Visualiser un contenu pour plus de détails"
         }
     ],
     "share_target": {

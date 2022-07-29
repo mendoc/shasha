@@ -1,11 +1,11 @@
-const cacheName = 'shasha-1-00-00';
+const cacheName = 'shasha-1-00-01';
 const assets = [
     '/assets/css/animate.min.css',
     '/assets/img/logo.png',
     '/assets/img/logo-maskable.png',
-    '/assets/img/screenshot-1-719x1405.png',
-    '/assets/img/screenshot-2-719x1403.png',
-    '/assets/img/screenshot-3-720x1412.png',
+    '/assets/img/screenshot-1-710x1300.png',
+    '/assets/img/screenshot-2-710x1300.png',
+    '/assets/img/screenshot-3-710x1300.png',
     '/assets/js/app.js',
     '/assets/js/linkify-jquery.min.js',
     '/assets/js/linkify.min.js',
