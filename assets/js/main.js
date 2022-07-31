@@ -105,11 +105,20 @@ $(document).ready(function () {
 	function checkUpdate() {
 		fetch("/version").then(r => {
 			return r.text();
-		}).then(v => {
-			const version = v;
-			console.log(v);
-			$("#version").text(version);
-			$("#version").css("opacity", "1");
+		}).then(versionSW => {
+			$("#version").text(versionSW);
+			fetch("/version.json").then(r => {
+				return r.json();
+			}).then(versionJson => {
+				if(versionJson.version == versionSW) {
+					$("#version").removeClass("bg-danger");
+					$("#version").addClass("bg-success");
+				} else {
+					$("#version").removeClass("bg-success");
+					$("#version").addClass("bg-danger");
+				}
+				$("#version").css("opacity", "1");
+			}).catch(console.log)
 		}).catch(console.log)
 	}
 
