@@ -84,7 +84,6 @@ function taille_format($taille)
 	    <style>
 	    	body {
 	    		font-family: 'Work Sans', sans-serif;
-	    		padding-top: 2rem;
 			    margin: 0 auto;
 	    	}
 	    	.delete {
@@ -104,12 +103,17 @@ function taille_format($taille)
 	    		max-width: 700px;
     			line-break: anywhere;
 	    	}
+			#version {
+				opacity: 0;
+				transition: opacity .5s;
+			}
 	    </style>
 	</head>
 
 	<body>
+		<div class="m-auto text-center" style="font-size: .7rem;"><span id="version" class="bg-success p-1 text-white rounded-bottom">1.00.00</span></div>
 		<div class="container mb-5">
-			<form id="form-ecrire-post" class="mb-3">
+			<form id="form-ecrire-post" class="mb-3 mt-2">
 				<fieldset>
 					<div class="form-group">
 						<div class="d-flex justify-content-between align-items-center mb-2">
