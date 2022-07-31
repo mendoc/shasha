@@ -1,29 +1,30 @@
-const cacheName = 'shasha-1-00-02';
+const version = "1.01.00";
+const cacheName = "shasha-" + version;
 const assets = [
-    '/assets/css/animate.min.css',
-    '/assets/img/logo.png',
-    '/assets/img/logo-maskable.png',
-    '/assets/img/screenshot-1-710x1300.png',
-    '/assets/img/screenshot-2-710x1300.png',
-    '/assets/img/screenshot-3-710x1300.png',
-    '/assets/js/app.js',
-    '/assets/js/linkify-jquery.min.js',
-    '/assets/js/linkify.min.js',
-    '/assets/js/main.js',
+    "/assets/css/animate.min.css",
+    "/assets/img/logo.png",
+    "/assets/img/logo-maskable.png",
+    "/assets/img/screenshot-1-710x1300.png",
+    "/assets/img/screenshot-2-710x1300.png",
+    "/assets/img/screenshot-3-710x1300.png",
+    "/assets/js/app.js",
+    "/assets/js/linkify-jquery.min.js",
+    "/assets/js/linkify.min.js",
+    "/assets/js/main.js",
 ];
 
 // install event
-self.addEventListener('install', evt => {
+self.addEventListener("install", evt => {
     evt.waitUntil(
         caches.open(cacheName).then((cache) => {
-            console.log('Enregistrement des assets dans le cache');
+            console.log("Enregistrement des assets dans le cache");
             cache.addAll(assets);
         })
     );
 });
 
 // activate event
-self.addEventListener('activate', evt => {
+self.addEventListener("activate", evt => {
     evt.waitUntil(
         caches.keys().then(keys => {
             return Promise.all(keys
@@ -34,10 +35,15 @@ self.addEventListener('activate', evt => {
     );
 });
 
-self.addEventListener('fetch', evt => {
-    evt.respondWith(
-        caches.match(evt.request).then(cacheRes => {
-            return cacheRes || fetch(evt.request);
-        })
-    );
+self.addEventListener("fetch", evt => {
+    const url = new URL(evt.request.url);
+    if (url.origin == location.origin) {
+        switch (url.pathname) {
+            case "/version":
+                evt.respondWith(new Response(version));
+                break;
+        }
+    } else {
+        evt.respondWith(fetch(evt.request));
+    }
 });
