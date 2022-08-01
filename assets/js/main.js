@@ -110,7 +110,7 @@ $(document).ready(function () {
 			fetch("/version.json").then(r => {
 				return r.json();
 			}).then(versionJson => {
-				if(versionJson.version == versionSW) {
+				if (versionJson.version == versionSW) {
 					$("#version").removeClass("bg-danger");
 					$("#version").addClass("bg-success");
 				} else {
@@ -127,6 +127,7 @@ $(document).ready(function () {
 		if (Notification.permission !== "granted") Notification.requestPermission();
 	}
 
+	checkUpdate();
 	setInterval(checkUpdate, 10000);
 
 	$("#form-ecrire-post").submit(function (e) {
@@ -156,7 +157,8 @@ $(document).ready(function () {
 			last_message = childData.texte;
 			addPost(childKey, childData.texte, childData.uid);
 		});
-
+		$('div.nb-posts span').text(snapshot.numChildren() + " posts");
+		$('div.nb-posts').show();
 		$('.post-text').linkify({
 			target: "_blank",
 			className: 'lien text-lighten-2'
