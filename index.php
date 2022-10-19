@@ -1,5 +1,5 @@
 <?php
-$path = ini_get('upload_tmp_dir') . "/";
+$path = ini_get('upload_tmp_dir') | "." . "/";
 $regex = $path . "*post-*";
 $expiration = 24 * 60 * 60;
 
@@ -11,6 +11,11 @@ if (isset($_GET["f"]) and !empty($_GET["f"])) {
 	$fn = $_GET["f"];
 	$path . $fn;
 	download_file($path . $fn);
+	exit;
+} else if (isset($_GET["d"]) and !empty($_GET["d"])) {
+	$fn = $path . $_GET["d"];
+	unlink($fn);
+	header("Location: /");
 	exit;
 }
 
@@ -113,7 +118,7 @@ function taille_format($taille)
 			transition: opacity .5s;
 		}
 
-		.nb-posts  {
+		.nb-posts {
 			display: none;
 		}
 
@@ -153,17 +158,15 @@ function taille_format($taille)
 			<div class="card-columns false" id="all-files">
 				<?php foreach ($files as $f) : ?>
 					<?php $fn = str_replace($path, "", $f) ?>
-					<a href="?f=<?= $fn ?>" target="_blank" class="text-decoration-none text-dark">
-						<div class="card" style="cursor: pointer">
-							<div class="card-body text-center animate__animated animate__fadeIn">
-								<svg xmlns="http://www.w3.org/2000/svg" style="height: 60px" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-									<path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-								</svg>
-								<p class="card-text mb-0"><?= reduire($fn) . " (" . taille_format(filesize($f)) . ")"; ?> </p>
-								<small>Suppression dans <?= restant($expiration - (time() - filectime($f))) ?></small>
-							</div>
+					<div class="card file" style="cursor: pointer" data-url="<?= $fn ?>">
+						<div class="card-body text-center animate__animated animate__fadeIn">
+							<svg xmlns="http://www.w3.org/2000/svg" style="height: 60px" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+								<path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+							</svg>
+							<p class="card-text mb-0"><?= reduire($fn) . " (" . taille_format(filesize($f)) . ")"; ?> </p>
+							<small>Suppression dans <?= restant($expiration - (time() - filectime($f))) ?></small>
 						</div>
-					</a>
+					</div>
 				<?php endforeach; ?>
 			</div>
 		<?php endif; ?>

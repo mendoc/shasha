@@ -3,6 +3,8 @@
 error_reporting(E_ALL);
 ini_set("display_errors", 1);
 
+$upload_tmp_dir = ini_get("upload_tmp_dir") | ".";
+
 $error_msgs = array(
 	0 => "There is no error, the file uploaded with success",
 	1 => "The uploaded file exceeds the upload_max_filesize directive in php.ini",
@@ -15,14 +17,14 @@ $error_msgs = array(
 );
 
 if ($_FILES["fichier"]["error"] !== 0) {
-	echo "<pre>" . ini_get("upload_tmp_dir") . "</pre>";
+	echo "<pre>" . $upload_tmp_dir . "</pre>";
 	echo "<pre>" . var_dump($_FILES) . "</pre>";
 	die($error_msgs[$_FILES["fichier"]["error"]]);
 }
 
 $uploadOk       = 1;
 $extensions     = ["jpg", "pdf", "png", "gif", "jpeg", "zip", "docx", "csv", "svg", "wav"];
-$target_dir     = ini_get("upload_tmp_dir") . "/";
+$target_dir     = $upload_tmp_dir . "/";
 $file_to_upload = $target_dir . basename($_FILES["fichier"]["name"]);
 $imageFileType  = strtolower(pathinfo($file_to_upload, PATHINFO_EXTENSION));
 $target_file    = $target_dir . "post-" . md5($file_to_upload) . "." . $imageFileType;

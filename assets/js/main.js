@@ -14,6 +14,10 @@ $(document).ready(function () {
 	};
 
 	// Fonctions
+	function deleteFile() {
+
+	}
+
 	function writeNewPost(texte) {
 		if (texte.length > 300) return;
 
@@ -139,7 +143,16 @@ $(document).ready(function () {
 
 	$("#form-ecrire-post").submit(function (e) {
 		return e.preventDefault();
-	})
+	});
+
+	$(`.file`).click(function () {
+		let fileURL = $(this).data("url");
+		if (delete_mode) {
+			location.href = `?d=${fileURL}`;
+		} else {
+			window.open(`?f=${fileURL}`);
+		}
+	});
 
 	$("#btn-charger-fichier").click(function () {
 		$('[name="fichier"]').click();
@@ -197,12 +210,15 @@ $(document).ready(function () {
 		if (key == 13 && val) {
 			if (val === "!delete") {
 				let posts = $('.post');
+				let files = $('.file');
 				if (delete_mode) {
 					posts.removeClass('delete');
+					files.removeClass('delete');
 					$('#post-content').val('');
 				}
 				else {
 					posts.addClass('delete');
+					files.addClass('delete');
 					$('#post-content').val('!delete');
 				}
 				delete_mode = !delete_mode;
@@ -217,8 +233,10 @@ $(document).ready(function () {
 		var key = e.keyCode ? e.keyCode : e.which;
 		if (e.keyCode === 27) {
 			let posts = $('.post');
+			let files = $('.file');
 			if (delete_mode) {
 				posts.removeClass('delete');
+				files.removeClass('delete');
 				$('#post-content').val('');
 				delete_mode = false;
 				updateNbChars();
