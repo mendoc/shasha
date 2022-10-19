@@ -3,7 +3,9 @@
 error_reporting(E_ALL);
 ini_set("display_errors", 1);
 
-$upload_tmp_dir = ini_get("upload_tmp_dir") | ".";
+$upload_tmp_dir = ini_get('upload_tmp_dir');
+if (empty($upload_tmp_dir)) $upload_tmp_dir = ".";
+$upload_tmp_dir .= "/";
 
 $error_msgs = array(
 	0 => "There is no error, the file uploaded with success",

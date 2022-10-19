@@ -1,5 +1,8 @@
 <?php
-$path = ini_get('upload_tmp_dir') | "." . "/";
+$path = ini_get('upload_tmp_dir');
+if (empty($path)) $path = ".";
+$path .= "/";
+
 $regex = $path . "*post-*";
 $expiration = 24 * 60 * 60;
 
