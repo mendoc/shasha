@@ -1,4 +1,4 @@
-const version = "1.01.01";
+const version = "1.01.02";
 const cacheName = "shasha-" + version;
 const assets = [
     "/assets/css/animate.min.css",
