@@ -37,6 +37,7 @@ self.addEventListener("activate", evt => {
 
 self.addEventListener("fetch", evt => {
     const url = new URL(evt.request.url);
+    console.log(url.origin, location.origin)
     if (url.origin == location.origin) {
         switch (url.pathname) {
             case "/version":
@@ -44,6 +45,7 @@ self.addEventListener("fetch", evt => {
                 break;
         }
     } else {
+        console.log("Retour par défaut");
         evt.respondWith(fetch(evt.request));
     }
 });
