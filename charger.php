@@ -25,7 +25,7 @@ if ($_FILES["fichier"]["error"] !== 0) {
 }
 
 $uploadOk       = 1;
-$extensions     = ["jpg", "pdf", "png", "gif", "jpeg", "zip", "docx", "csv", "svg", "wav", "stl"];
+$extensions     = ["jpg", "pdf", "png", "gif", "jpeg", "zip", "docx", "csv", "svg", "wav", "stl", "txt"];
 $target_dir     = $upload_tmp_dir . "/";
 $file_to_upload = $target_dir . basename($_FILES["fichier"]["name"]);
 $imageFileType  = strtolower(pathinfo($file_to_upload, PATHINFO_EXTENSION));
@@ -61,3 +61,4 @@ if ($uploadOk == 0) {
 		die("Sorry, there was an error uploading your file " .  $target_file);
 	}
 }
+
