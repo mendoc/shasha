@@ -133,6 +133,33 @@ function taille_format($taille)
 			margin: auto;
 			margin-top: -13px;
 		}
+
+		.day-group {
+			margin-bottom: 8px;
+		}
+
+		.day-separator {
+			display: flex;
+			align-items: center;
+			margin: 20px 0 10px;
+			color: #6c757d;
+			font-size: .75rem;
+			font-weight: 600;
+			text-transform: uppercase;
+			letter-spacing: .6px;
+		}
+
+		.day-separator::before,
+		.day-separator::after {
+			content: '';
+			flex: 1;
+			height: 1px;
+			background: #dee2e6;
+		}
+
+		.day-separator span {
+			padding: 0 12px;
+		}
 	</style>
 </head>
 
@@ -176,7 +203,7 @@ function taille_format($taille)
 		<div class="border-top text-center nb-posts animate__animated animate__fadeIn">
 			<span class="border text-white p-1 rounded"></span>
 		</div>
-		<div class="card-columns false mt-3" id="all-posts"></div>
+		<div class="mt-3" id="all-posts"></div>
 		<div id="loader">
 			<div class="d-flex justify-content-center flex-column align-items-center mt-5">
 				<div class="spinner-border" role="status">

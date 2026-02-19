@@ -47,36 +47,64 @@ $(document).ready(function () {
 		$("#nb-chars").text($('#post-content').val().length);
 	}
 
-	function getDateFormat(uid) {
-		const d = new Date(uid);
-
-		let hour = zeroBefore(d.getHours());
-		let mins = zeroBefore(d.getMinutes());
-
-		if (Date.now() - uid <= 24 * 60 * 60 * 1000) {
-			return `auj. à ${hour}:${mins}`;
-		}
-		else if (Date.now() - uid <= 2 * 24 * 60 * 60 * 1000) {
-			return `hier à ${hour}:${mins}`;
-		}
-		else if (Date.now() - uid <= 3 * 24 * 60 * 60 * 1000) {
-			return `avant-hier à ${hour}:${mins}`;
-		}
-
-		let day = zeroBefore(d.getDate());
-		let month = zeroBefore(d.getMonth() + 1);
-
-		return `le ${day}/${month} à ${hour}:${mins}`;
+	// Retourne le timestamp du début de la journée (minuit) pour un timestamp donné
+	function getDayStart(timestamp) {
+		const d = new Date(timestamp);
+		d.setHours(0, 0, 0, 0);
+		return d.getTime();
 	}
 
-	function addPost(key, texte, uid) {
+	// Retourne une clé unique par jour (YYYY-MM-DD) pour le regroupement
+	function getDayKey(uid) {
+		const d = new Date(uid);
+		return `${d.getFullYear()}-${zeroBefore(d.getMonth() + 1)}-${zeroBefore(d.getDate())}`;
+	}
+
+	// Retourne le libellé du jour pour l'en-tête de groupe
+	function getDayLabel(uid) {
+		const now = new Date();
+		const todayStart = getDayStart(now.getTime());
+		const postDayStart = getDayStart(uid);
+		const diffDays = Math.round((todayStart - postDayStart) / 86400000);
+
+		if (diffDays === 0) return "Aujourd'hui";
+		if (diffDays === 1) return "Hier";
+		if (diffDays === 2) return "Avant-hier";
+
+		const d = new Date(uid);
+		const dayNames = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+		const monthNames = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+
+		const currentYear = now.getFullYear();
+		const postYear = d.getFullYear();
+
+		if (postYear === currentYear) {
+			const dayName = dayNames[d.getDay()];
+			const day = zeroBefore(d.getDate());
+			const month = zeroBefore(d.getMonth() + 1);
+			return `${dayName} ${day}/${month}`;
+		} else {
+			const monthName = monthNames[d.getMonth()];
+			return `${d.getDate()} ${monthName} ${postYear}`;
+		}
+	}
+
+	// Retourne l'heure formatée pour l'affichage dans la carte
+	function getDateFormat(uid) {
+		const d = new Date(uid);
+		let hour = zeroBefore(d.getHours());
+		let mins = zeroBefore(d.getMinutes());
+		return `${hour}:${mins}`;
+	}
+
+	function addPost(key, texte, uid, $container) {
 		const pubDate = getDateFormat(uid);
-		$('#all-posts').prepend(
+		$container.append(
 			`<div class="post card ${delete_mode ? 'delete' : ''}" id="${key}">
 				<div class="card-body animate__animated animate__fadeIn">
 					<p class="card-text post-text">${texte}</p>
 					<blockquote class="blockquote mb-0">
-						<footer class="blockquote-footer"><small class="text-muted">Posté <cite title="Date de publication"><time datetime="${uid}">${pubDate}</time></cite></small>
+						<footer class="blockquote-footer"><small class="text-muted"><cite title="Date de publication"><time datetime="${uid}">${pubDate}</time></cite></small>
 						</footer>
 					</blockquote>
 				</div>
@@ -171,12 +199,34 @@ $(document).ready(function () {
 	// Ecoute des modification de la collection post
 	ref.on('value', function (snapshot) {
 		$('#all-posts').empty();
+
+		// Collecte et tri des posts par date décroissante
+		let posts = [];
 		snapshot.forEach(function (childSnapshot) {
 			var childKey = childSnapshot.key;
 			var childData = childSnapshot.val();
-			last_message = childData.texte;
-			addPost(childKey, childData.texte, childData.uid);
+			posts.push({ key: childKey, texte: childData.texte, uid: childData.uid });
 		});
+		posts.sort(function (a, b) { return b.uid - a.uid; });
+
+		// Regroupement par jour et rendu
+		let currentDayKey = null;
+		let $currentCardColumns = null;
+		posts.forEach(function (post) {
+			const dayKey = getDayKey(post.uid);
+			if (dayKey !== currentDayKey) {
+				currentDayKey = dayKey;
+				const label = getDayLabel(post.uid);
+				const $dayGroup = $('<div class="day-group"></div>');
+				$dayGroup.append(`<div class="day-separator"><span>${label}</span></div>`);
+				$currentCardColumns = $('<div class="card-columns"></div>');
+				$dayGroup.append($currentCardColumns);
+				$('#all-posts').append($dayGroup);
+			}
+			last_message = post.texte;
+			addPost(post.key, post.texte, post.uid, $currentCardColumns);
+		});
+
 		$('div.nb-posts span').text(snapshot.numChildren() + " posts");
 		$('div.nb-posts').show();
 		$('.post-text').linkify({
