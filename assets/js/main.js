@@ -113,6 +113,11 @@ $(document).ready(function () {
 		return match[0].replace(/[.,;:!?)"']+$/, '');
 	}
 
+	// Retourne true si le texte ne contient que l'URL (rien d'autre)
+	function isOnlyUrl(text) {
+		return /^https?:\/\/\S+$/.test(text.trim());
+	}
+
 	// Injecte un header OG dans la card à partir de données déjà connues
 	function displayOG(key, ogData) {
 		const $card = $('#' + key);
@@ -160,12 +165,16 @@ $(document).ready(function () {
 	// og : undefined = pas encore récupéré | false = pas de données OG | objet = données en cache
 	function addPost(key, texte, uid, og, $container) {
 		const pubDate = getDateFormat(uid);
+		const firstUrl = extractFirstUrl(texte);
+		const copyBtn = (isOnlyUrl(texte) && firstUrl)
+			? `<button class="btn-copy-link" data-url="${firstUrl}" title="Copier le lien"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>`
+			: '';
 		$container.append(
 			`<div class="post card ${delete_mode ? 'delete' : ''}" id="${key}">
 				<div class="card-body animate__animated animate__fadeIn">
 					<p class="card-text post-text">${texte}</p>
 					<blockquote class="blockquote mb-0">
-						<footer class="blockquote-footer"><small class="text-muted"><cite title="Date de publication"><time datetime="${uid}">${pubDate}</time></cite></small>
+						<footer class="blockquote-footer d-flex justify-content-between align-items-center"><small class="text-muted"><cite title="Date de publication"><time datetime="${uid}">${pubDate}</time></cite></small>${copyBtn}
 						</footer>
 					</blockquote>
 				</div>
@@ -175,8 +184,6 @@ $(document).ready(function () {
 		if (og === false) return;                          // lien sans OG connu, ne pas re-tenter
 		if (og && (og.title || og.image)) { displayOG(key, og); return; } // données en cache
 
-		// og non défini : chercher s'il y a une URL dans le texte
-		const firstUrl = extractFirstUrl(texte);
 		if (firstUrl) fetchAndDisplayOG(key, firstUrl);
 	}
 
@@ -413,10 +420,17 @@ $(document).ready(function () {
 		if (delete_mode) {
 			const key = $(this).attr('id');
 			firebase.database().ref('/posts/' + key).remove();
-		} else if (!$(e.target).hasClass('lien')) {
+		} else if (!$(e.target).hasClass('lien') && !$(e.target).closest('.btn-copy-link').length) {
 			$("#box-details div.content").html($(this).html());
 			$("#box-details").show();
 		}
+	});
+
+	// Copier le lien d'un post dans le presse-papier
+	$('#all-posts').on('click', '.btn-copy-link', function (e) {
+		e.stopPropagation();
+		const url = $(this).data('url');
+		navigator.clipboard.writeText(url);
 	});
 
 	$('#box-details').click(function (e) {
