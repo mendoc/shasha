@@ -7,6 +7,25 @@ $upload_tmp_dir = ini_get('upload_tmp_dir');
 if (empty($upload_tmp_dir)) $upload_tmp_dir = ".";
 $upload_tmp_dir .= "/";
 
+// Traitement du partage de texte/URL via le Web Share Target
+$shared_text = '';
+if (!empty($_POST['text'])) {
+	$shared_text = trim($_POST['text']);
+}
+if (!empty($_POST['url'])) {
+	$url = trim($_POST['url']);
+	$shared_text = $shared_text ? $shared_text . ' ' . $url : $url;
+}
+if (empty($shared_text) && !empty($_POST['title'])) {
+	$shared_text = trim($_POST['title']);
+}
+$no_file = !isset($_FILES["fichier"]) || $_FILES["fichier"]["error"] === 4;
+if (!empty($shared_text) && $no_file) {
+	$shared_text = mb_substr($shared_text, 0, 300);
+	header("Location: /?shared_text=" . urlencode($shared_text));
+	exit;
+}
+
 $error_msgs = array(
 	0 => "There is no error, the file uploaded with success",
 	1 => "The uploaded file exceeds the upload_max_filesize directive in php.ini",
