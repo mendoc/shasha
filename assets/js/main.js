@@ -122,6 +122,7 @@ $(document).ready(function () {
 	function displayOG(key, ogData) {
 		const $card = $('#' + key);
 		if (!$card.length) return;
+		if ($card.find('.og-preview').length) return; // Évite l'affichage en double
 
 		let html = '<div class="og-preview">';
 		if (ogData.image) {
