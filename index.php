@@ -267,7 +267,7 @@ function taille_format($taille)
 </head>
 
 <body>
-	<div class="m-auto text-center" style="font-size: .7rem;"><span id="version" class="bg-success p-1 text-white rounded-bottom">1.00.00</span></div>
+	<div class="m-auto text-center" style="font-size: .7rem;"><span id="version" class="bg-success p-1 text-white rounded-bottom">1.03.00</span></div>
 	<div class="container mb-5">
 		<form id="form-ecrire-post" class="mb-3 mt-2">
 			<fieldset>
