@@ -225,6 +225,7 @@ function taille_format($taille)
 		}
 
 		.btn-copy-link {
+			float: right;
 			background: none;
 			border: none;
 			padding: 2px 4px;

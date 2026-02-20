@@ -174,7 +174,7 @@ $(document).ready(function () {
 				<div class="card-body animate__animated animate__fadeIn">
 					<p class="card-text post-text">${texte}</p>
 					<blockquote class="blockquote mb-0">
-						<footer class="blockquote-footer d-flex justify-content-between align-items-center"><small class="text-muted"><cite title="Date de publication"><time datetime="${uid}">${pubDate}</time></cite></small>${copyBtn}
+						<footer class="blockquote-footer">${copyBtn}<small class="text-muted"><cite title="Date de publication"><time datetime="${uid}">${pubDate}</time></cite></small>
 						</footer>
 					</blockquote>
 				</div>
