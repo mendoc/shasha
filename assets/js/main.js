@@ -4,6 +4,7 @@ $(document).ready(function () {
 	let show_notif = false;
 	let windowObjectReference;
 	let last_message = "Nouveau post publié sur la plateforme de partage";
+	let last_post_key = null;
 	window.name = "post_app_v2";
 
 	// Lazy loading
@@ -295,7 +296,8 @@ $(document).ready(function () {
 
 			notification.onclick = function () {
 				notification.close();
-				windowObjectReference = window.focus();
+				window.focus();
+				if (last_post_key) showPostModal(last_post_key);
 			};
 		}
 	}
@@ -390,6 +392,7 @@ $(document).ready(function () {
 		if (posts.length > 0) {
 			recentOldestUID = posts[posts.length - 1].uid;
 			last_message = posts[0].texte;
+			last_post_key = posts[0].key;
 		}
 
 		applyPostProcessing();
@@ -437,6 +440,22 @@ $(document).ready(function () {
 
 	const ICON_COPY = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
 	const ICON_CHECK = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+
+	// Affiche le contenu d'un post dans la modale (utilisé au clic sur une notification)
+	function showPostModal(key) {
+		const $post = $('#' + key);
+		if (!$post.length) return;
+		const $modal = $("#box-details div.content");
+		$modal.html($post.html());
+		$modal.find('.btn-copy-link').html(ICON_COPY).css('color', '');
+		const $postText = $modal.find('.post-text');
+		const fullText = $postText.data('full-text');
+		if (fullText) {
+			$postText.text(fullText);
+			$postText.linkify({ target: "_blank", className: 'lien text-lighten-2' });
+		}
+		$("#box-details").show();
+	}
 
 	function copyWithFeedback($btn, text) {
 		navigator.clipboard.writeText(text);
