@@ -19,8 +19,26 @@ if (!empty($_POST['url'])) {
 if (empty($shared_text) && !empty($_POST['title'])) {
 	$shared_text = trim($_POST['title']);
 }
-$no_file = !isset($_FILES["fichier"]) || $_FILES["fichier"]["error"] === 4;
-if (!empty($shared_text) && $no_file) {
+// Vrai fichier = uploadé sans erreur ET avec du contenu (> 0 octet)
+// Cela gère le cas où Android envoie un champ fichier vide (size=0) avec le texte partagé
+$has_real_file = isset($_FILES["fichier"])
+	&& $_FILES["fichier"]["error"] === 0
+	&& $_FILES["fichier"]["size"] > 0;
+
+// Certains appareils Android envoient le texte partagé comme un petit fichier text/plain
+// au lieu de remplir les champs POST text/url/title
+if ($has_real_file && empty($shared_text) && $_FILES["fichier"]["size"] <= 2000) {
+	$mime = @mime_content_type($_FILES["fichier"]["tmp_name"]);
+	if ($mime === 'text/plain') {
+		$file_text = trim(file_get_contents($_FILES["fichier"]["tmp_name"]));
+		if (!empty($file_text)) {
+			$shared_text = $file_text;
+			$has_real_file = false;
+		}
+	}
+}
+
+if (!empty($shared_text) && !$has_real_file) {
 	$shared_text = mb_substr($shared_text, 0, 300);
 	header("Location: /?shared_text=" . urlencode($shared_text));
 	exit;
