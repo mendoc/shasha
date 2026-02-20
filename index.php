@@ -160,6 +160,53 @@ function taille_format($taille)
 		.day-separator span {
 			padding: 0 12px;
 		}
+
+		.og-preview {
+			border-radius: calc(.25rem - 1px) calc(.25rem - 1px) 0 0;
+			overflow: hidden;
+			border-bottom: 1px solid rgba(0, 0, 0, .125);
+			cursor: pointer;
+		}
+
+		.og-image {
+			width: 100%;
+			max-height: 160px;
+			object-fit: cover;
+			display: block;
+		}
+
+		.og-text {
+			padding: 8px 12px;
+		}
+
+		.og-site {
+			display: block;
+			font-size: .65rem;
+			text-transform: uppercase;
+			color: #6c757d;
+			letter-spacing: .5px;
+			margin-bottom: 2px;
+		}
+
+		.og-title {
+			display: block;
+			font-size: .82rem;
+			font-weight: 600;
+			line-height: 1.3;
+			color: #212529;
+			margin-bottom: 3px;
+		}
+
+		.og-description {
+			font-size: .73rem;
+			color: #6c757d;
+			line-height: 1.4;
+			margin-bottom: 0;
+			display: -webkit-box;
+			-webkit-line-clamp: 2;
+			-webkit-box-orient: vertical;
+			overflow: hidden;
+		}
 	</style>
 </head>
 

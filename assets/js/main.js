@@ -106,6 +106,46 @@ $(document).ready(function () {
 		return `${hour}:${mins}`;
 	}
 
+	// Extrait la première URL d'un texte (en nettoyant la ponctuation finale)
+	function extractFirstUrl(text) {
+		const match = text.match(/(https?:\/\/[^\s]+)/);
+		if (!match) return null;
+		return match[0].replace(/[.,;:!?)"']+$/, '');
+	}
+
+	// Récupère les métadonnées Open Graph via le proxy og.php et les injecte dans la card
+	function fetchAndDisplayOG(key, url) {
+		$.getJSON('/og.php', { url: url })
+			.done(function (data) {
+				if (!data || data.error) return;
+				if (!data.title && !data.image && !data.description) return;
+
+				const $card = $('#' + key);
+				if (!$card.length) return;
+
+				let html = '<div class="og-preview">';
+				if (data.image) {
+					html += `<img src="${data.image}" class="og-image" alt="" loading="lazy">`;
+				}
+				if (data.title || data.description) {
+					html += '<div class="og-text">';
+					if (data.site_name) {
+						html += `<span class="og-site">${data.site_name}</span>`;
+					}
+					if (data.title) {
+						html += `<strong class="og-title">${data.title}</strong>`;
+					}
+					if (data.description) {
+						html += `<p class="og-description">${data.description}</p>`;
+					}
+					html += '</div>';
+				}
+				html += '</div>';
+
+				$card.prepend(html);
+			});
+	}
+
 	function addPost(key, texte, uid, $container) {
 		const pubDate = getDateFormat(uid);
 		$container.append(
@@ -119,6 +159,11 @@ $(document).ready(function () {
 				</div>
 			</div>`
 		);
+
+		const firstUrl = extractFirstUrl(texte);
+		if (firstUrl) {
+			fetchAndDisplayOG(key, firstUrl);
+		}
 	}
 
 	// Rend un tableau de posts dans un conteneur en groupes par jour (vide le conteneur avant)
