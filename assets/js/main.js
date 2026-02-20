@@ -372,6 +372,28 @@ $(document).ready(function () {
 		}
 	});
 
+	// Épingler / désépingler un fichier
+	$('#all-files').on('click', '.btn-pin-file', function (e) {
+		e.stopPropagation();
+		if (delete_mode) return;
+		var $btn = $(this);
+		var filename = $btn.data('file');
+		fetch('epingler.php?f=' + encodeURIComponent(filename))
+			.then(function (r) { return r.json(); })
+			.then(function (data) {
+				if (data.pinned !== undefined) {
+					var $card = $btn.closest('.card');
+					if (data.pinned) {
+						$btn.addClass('pinned').attr('title', 'Désépingler');
+						$btn.find('svg').attr('fill', 'currentColor');
+						$card.find('small').text('Fichier épinglé').addClass('text-success');
+					} else {
+						location.reload();
+					}
+				}
+			});
+	});
+
 	$("#btn-actualiser").click(function () {
 		location.reload();
 	});
