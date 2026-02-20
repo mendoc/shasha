@@ -34,18 +34,3 @@ self.addEventListener("activate", evt => {
         })
     );
 });
-
-self.addEventListener("fetch", evt => {
-    const url = new URL(evt.request.url);
-    console.log(url.origin, location.origin)
-    if (url.origin == location.origin) {
-        switch (url.pathname) {
-            case "/version":
-                evt.respondWith(new Response(version));
-                break;
-        }
-    } else {
-        console.log("Retour par défaut");
-        evt.respondWith(fetch(evt.request));
-    }
-});

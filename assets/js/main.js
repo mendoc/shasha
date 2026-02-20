@@ -292,38 +292,32 @@ $(document).ready(function () {
 		}
 	}
 
+	let pendingVersion = null;
+
 	function checkUpdate() {
-		fetch("/version").then(r => {
-			return r.text();
-		}).then(versionSW => {
-			console.log(versionSW)
-			fetch("/version.json").then(r => {
-				return r.json();
-			}).then(versionJson => {
-				if (versionJson.version == versionSW) {
-					$("#version").text(versionSW);
-					$("#version").removeClass("bg-danger");
-					$("#version").addClass("bg-success");
-					$("#version").css("opacity", "1");
-					$("#box-update").hide();
-				} else {
-					if (versionSW.includes("<")) {
-						$("#version").css("opacity", "0");
-					} else {
-						$("#version").text(versionSW);
-						$("#version").removeClass("bg-success");
-						$("#version").addClass("bg-danger");
-						$("#version").css("opacity", "1");
-						$("#box-update").show();
-					}
-				}
-			}).catch(console.log)
-		}).catch(console.log)
+		fetch("/version.json").then(r => r.json()).then(versionJson => {
+			const serverVersion = versionJson.version;
+			const storedVersion = localStorage.getItem("app-version");
+
+			if (storedVersion === null) {
+				localStorage.setItem("app-version", serverVersion);
+				$("#version").text(serverVersion).removeClass("bg-danger").addClass("bg-success").css("opacity", "1");
+				$("#box-update").hide();
+			} else if (storedVersion === serverVersion) {
+				$("#version").text(serverVersion).removeClass("bg-danger").addClass("bg-success").css("opacity", "1");
+				$("#box-update").hide();
+			} else {
+				pendingVersion = serverVersion;
+				$("#version").text(storedVersion).removeClass("bg-success").addClass("bg-danger").css("opacity", "1");
+				$("#box-update").show();
+			}
+		}).catch(console.log);
 	}
 
 	$("#btn-update").click(async function () {
 		$(this).prop("disabled", true).text("Mise à jour en cours…");
 		try {
+			if (pendingVersion) localStorage.setItem("app-version", pendingVersion);
 			const keys = await caches.keys();
 			await Promise.all(keys.map(key => caches.delete(key)));
 			const registrations = await navigator.serviceWorker.getRegistrations();
