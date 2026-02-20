@@ -423,6 +423,7 @@ $(document).ready(function () {
 		} else if (!$(e.target).hasClass('lien') && !$(e.target).closest('.btn-copy-link').length) {
 			const $modal = $("#box-details div.content");
 			$modal.html($(this).html());
+			$modal.find('.btn-copy-link').html(ICON_COPY).css('color', '');
 			const $postText = $modal.find('.post-text');
 			const fullText = $postText.data('full-text');
 			if (fullText) {
