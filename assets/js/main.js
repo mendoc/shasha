@@ -115,8 +115,9 @@ $(document).ready(function () {
 
 	// Récupère les métadonnées Open Graph via le proxy og.php et les injecte dans la card
 	function fetchAndDisplayOG(key, url) {
-		$.getJSON('/og.php', { url: url })
-			.done(function (data) {
+		fetch('/og.php?url=' + encodeURIComponent(url))
+			.then(function (r) { return r.json(); })
+			.then(function (data) {
 				if (!data || data.error) return;
 				if (!data.title && !data.image && !data.description) return;
 
@@ -143,7 +144,8 @@ $(document).ready(function () {
 				html += '</div>';
 
 				$card.prepend(html);
-			});
+			})
+			.catch(function () { /* échec silencieux */ });
 	}
 
 	function addPost(key, texte, uid, $container) {
