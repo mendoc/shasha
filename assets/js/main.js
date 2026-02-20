@@ -166,13 +166,13 @@ $(document).ready(function () {
 	function addPost(key, texte, uid, og, $container) {
 		const pubDate = getDateFormat(uid);
 		const firstUrl = extractFirstUrl(texte);
-		const copyBtn = (isOnlyUrl(texte) && firstUrl)
-			? `<button class="btn-copy-link" data-url="${firstUrl}" title="Copier le lien"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>`
-			: '';
+		const displayText = texte.length > 100 ? texte.substring(0, 100) + '…' : texte;
+		const escapedTexte = texte.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+		const copyBtn = `<button class="btn-copy-link" data-text="${escapedTexte}" title="Copier"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>`;
 		$container.append(
 			`<div class="post card ${delete_mode ? 'delete' : ''}" id="${key}">
 				<div class="card-body animate__animated animate__fadeIn">
-					<p class="card-text post-text">${texte}</p>
+					<p class="card-text post-text" data-full-text="${escapedTexte}">${displayText}</p>
 					<blockquote class="blockquote mb-0">
 						<footer class="blockquote-footer">${copyBtn}<small class="text-muted"><cite title="Date de publication"><time datetime="${uid}">${pubDate}</time></cite></small>
 						</footer>
@@ -421,16 +421,39 @@ $(document).ready(function () {
 			const key = $(this).attr('id');
 			firebase.database().ref('/posts/' + key).remove();
 		} else if (!$(e.target).hasClass('lien') && !$(e.target).closest('.btn-copy-link').length) {
-			$("#box-details div.content").html($(this).html());
+			const $modal = $("#box-details div.content");
+			$modal.html($(this).html());
+			$modal.find('.btn-copy-link').html(ICON_COPY).css('color', '');
+			const $postText = $modal.find('.post-text');
+			const fullText = $postText.data('full-text');
+			if (fullText) {
+				$postText.text(fullText);
+				$postText.linkify({ target: "_blank", className: 'lien text-lighten-2' });
+			}
 			$("#box-details").show();
 		}
 	});
 
-	// Copier le lien d'un post dans le presse-papier
+	const ICON_COPY = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
+	const ICON_CHECK = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+
+	function copyWithFeedback($btn, text) {
+		navigator.clipboard.writeText(text);
+		$btn.html(ICON_CHECK).css('color', '#28a745');
+		setTimeout(function () {
+			$btn.html(ICON_COPY).css('color', '');
+		}, 2000);
+	}
+
+	// Copier le texte d'un post dans le presse-papier
 	$('#all-posts').on('click', '.btn-copy-link', function (e) {
 		e.stopPropagation();
-		const url = $(this).data('url');
-		navigator.clipboard.writeText(url);
+		copyWithFeedback($(this), $(this).data('text'));
+	});
+
+	$('#box-details').on('click', '.btn-copy-link', function (e) {
+		e.stopPropagation();
+		copyWithFeedback($(this), $(this).data('text'));
 	});
 
 	$('#box-details').click(function (e) {
