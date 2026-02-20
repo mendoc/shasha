@@ -29,6 +29,16 @@ $(document).ready(function () {
 
 	}
 
+	// Supprime automatiquement les posts vieux de plus d'un mois
+	function deleteOldPosts() {
+		const oneMonthAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
+		firebase.database().ref('/posts').orderByChild('uid').endAt(oneMonthAgo).once('value', function (snapshot) {
+			snapshot.forEach(function (childSnapshot) {
+				childSnapshot.ref.remove();
+			});
+		});
+	}
+
 	function writeNewPost(texte) {
 		if (texte.length > 300) return;
 
@@ -372,6 +382,9 @@ $(document).ready(function () {
 
 	// Initialisation de Firebase
 	firebase.initializeApp(config);
+
+	// Suppression des posts vieux de plus d'un mois au chargement
+	deleteOldPosts();
 
 	// Traitement du texte partagé via le Web Share Target (depuis une autre app)
 	const urlParams = new URLSearchParams(window.location.search);
