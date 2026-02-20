@@ -360,6 +360,14 @@ $(document).ready(function () {
 	// Initialisation de Firebase
 	firebase.initializeApp(config);
 
+	// Traitement du texte partagé via le Web Share Target (depuis une autre app)
+	const urlParams = new URLSearchParams(window.location.search);
+	const sharedText = urlParams.get('shared_text');
+	if (sharedText) {
+		window.history.replaceState({}, document.title, window.location.pathname);
+		writeNewPost(sharedText);
+	}
+
 	// Ecoute en temps réel des BATCH_SIZE posts les plus récents
 	firebase.database().ref('/posts').orderByChild('uid').limitToLast(BATCH_SIZE).on('value', function (snapshot) {
 		let posts = [];
