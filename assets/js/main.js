@@ -172,7 +172,7 @@ $(document).ready(function () {
 		$container.append(
 			`<div class="post card ${delete_mode ? 'delete' : ''}" id="${key}">
 				<div class="card-body animate__animated animate__fadeIn">
-					<p class="card-text post-text">${displayText}</p>
+					<p class="card-text post-text" data-full-text="${escapedTexte}">${displayText}</p>
 					<blockquote class="blockquote mb-0">
 						<footer class="blockquote-footer">${copyBtn}<small class="text-muted"><cite title="Date de publication"><time datetime="${uid}">${pubDate}</time></cite></small>
 						</footer>
@@ -421,7 +421,14 @@ $(document).ready(function () {
 			const key = $(this).attr('id');
 			firebase.database().ref('/posts/' + key).remove();
 		} else if (!$(e.target).hasClass('lien') && !$(e.target).closest('.btn-copy-link').length) {
-			$("#box-details div.content").html($(this).html());
+			const $modal = $("#box-details div.content");
+			$modal.html($(this).html());
+			const $postText = $modal.find('.post-text');
+			const fullText = $postText.data('full-text');
+			if (fullText) {
+				$postText.text(fullText);
+				$postText.linkify({ target: "_blank", className: 'lien text-lighten-2' });
+			}
 			$("#box-details").show();
 		}
 	});
