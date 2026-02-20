@@ -5,6 +5,15 @@ $(document).ready(function () {
 	let windowObjectReference;
 	let last_message = "Nouveau post publié sur la plateforme de partage";
 	window.name = "post_app_v2";
+
+	// Lazy loading
+	const BATCH_SIZE = 10;
+	let recentOldestUID = null;
+	let paginationOldestUID = null;
+	let allPostsLoaded = false;
+	let loadingMore = false;
+	const olderDayGroups = {};
+
 	const config = {
 		apiKey: "AIzaSyC3pt7TQXG32aworFO6Zp4JgrVz1g8jXLQ",
 		authDomain: "nomadic-rush-162313.firebaseapp.com",
@@ -97,7 +106,59 @@ $(document).ready(function () {
 		return `${hour}:${mins}`;
 	}
 
-	function addPost(key, texte, uid, $container) {
+	// Extrait la première URL d'un texte (en nettoyant la ponctuation finale)
+	function extractFirstUrl(text) {
+		const match = text.match(/(https?:\/\/[^\s]+)/);
+		if (!match) return null;
+		return match[0].replace(/[.,;:!?)"']+$/, '');
+	}
+
+	// Injecte un header OG dans la card à partir de données déjà connues
+	function displayOG(key, ogData) {
+		const $card = $('#' + key);
+		if (!$card.length) return;
+
+		let html = '<div class="og-preview">';
+		if (ogData.image) {
+			html += `<img src="${ogData.image}" class="og-image" alt="" loading="lazy">`;
+		}
+		if (ogData.title || ogData.description) {
+			html += '<div class="og-text">';
+			if (ogData.site_name) {
+				html += `<span class="og-site">${ogData.site_name}</span>`;
+			}
+			if (ogData.title) {
+				html += `<strong class="og-title">${ogData.title}</strong>`;
+			}
+			if (ogData.description) {
+				html += `<p class="og-description">${ogData.description}</p>`;
+			}
+			html += '</div>';
+		}
+		html += '</div>';
+		$card.prepend(html);
+	}
+
+	// Récupère les métadonnées OG via og.php, les sauvegarde dans Firebase, puis les affiche
+	function fetchAndDisplayOG(key, url) {
+		fetch('og.php?url=' + encodeURIComponent(url))
+			.then(function (r) { return r.json(); })
+			.then(function (data) {
+				const hasData = data && !data.error && (data.title || data.image || data.description);
+				const ogValue = hasData
+					? { title: data.title || null, description: data.description || null, image: data.image || null, site_name: data.site_name || null }
+					: false;
+
+				// Persister dans Firebase pour éviter les re-fetch ultérieurs
+				firebase.database().ref('/posts/' + key + '/og').set(ogValue);
+
+				if (ogValue) displayOG(key, ogValue);
+			})
+			.catch(function () { /* échec silencieux, on réessaiera au prochain chargement */ });
+	}
+
+	// og : undefined = pas encore récupéré | false = pas de données OG | objet = données en cache
+	function addPost(key, texte, uid, og, $container) {
 		const pubDate = getDateFormat(uid);
 		$container.append(
 			`<div class="post card ${delete_mode ? 'delete' : ''}" id="${key}">
@@ -110,11 +171,108 @@ $(document).ready(function () {
 				</div>
 			</div>`
 		);
-		$(`#${key}`).click(function () {
-			if (delete_mode) {
-				const post = firebase.database().ref('/posts/' + key);
-				post.remove();
+
+		if (og === false) return;                          // lien sans OG connu, ne pas re-tenter
+		if (og && (og.title || og.image)) { displayOG(key, og); return; } // données en cache
+
+		// og non défini : chercher s'il y a une URL dans le texte
+		const firstUrl = extractFirstUrl(texte);
+		if (firstUrl) fetchAndDisplayOG(key, firstUrl);
+	}
+
+	// Rend un tableau de posts dans un conteneur en groupes par jour (vide le conteneur avant)
+	function renderPostsIntoDayGroups(posts, $container) {
+		$container.empty();
+		let currentDayKey = null;
+		let $currentCardColumns = null;
+		posts.forEach(function (post) {
+			const dayKey = getDayKey(post.uid);
+			if (dayKey !== currentDayKey) {
+				currentDayKey = dayKey;
+				const label = getDayLabel(post.uid);
+				const $dayGroup = $('<div class="day-group"></div>');
+				$dayGroup.append(`<div class="day-separator"><span>${label}</span></div>`);
+				$currentCardColumns = $('<div class="card-columns"></div>');
+				$dayGroup.append($currentCardColumns);
+				$container.append($dayGroup);
 			}
+			addPost(post.key, post.texte, post.uid, post.og, $currentCardColumns);
+		});
+	}
+
+	// Ajoute des posts anciens à #older-posts en réutilisant les groupes de jours existants
+	function appendPostsToDayGroups(posts) {
+		let currentDayKey = null;
+		let $currentCardColumns = null;
+		posts.forEach(function (post) {
+			const dayKey = getDayKey(post.uid);
+			if (dayKey !== currentDayKey) {
+				currentDayKey = dayKey;
+				if (olderDayGroups[dayKey]) {
+					$currentCardColumns = olderDayGroups[dayKey];
+				} else {
+					const label = getDayLabel(post.uid);
+					const $dayGroup = $('<div class="day-group"></div>');
+					$dayGroup.append(`<div class="day-separator"><span>${label}</span></div>`);
+					$currentCardColumns = $('<div class="card-columns"></div>');
+					$dayGroup.append($currentCardColumns);
+					$('#older-posts').append($dayGroup);
+					olderDayGroups[dayKey] = $currentCardColumns;
+				}
+			}
+			addPost(post.key, post.texte, post.uid, post.og, $currentCardColumns);
+		});
+		applyPostProcessing();
+	}
+
+	function updateLoadedCount() {
+		const total = $('.post').length;
+		$('div.nb-posts span').text(total + " posts chargés");
+		$('div.nb-posts').show();
+	}
+
+	function applyPostProcessing() {
+		$('.post-text').linkify({
+			target: "_blank",
+			className: 'lien text-lighten-2'
+		});
+		updateLoadedCount();
+	}
+
+	// Charge le prochain lot de posts plus anciens
+	function loadMorePosts() {
+		if (allPostsLoaded || loadingMore) return;
+		const queryUID = paginationOldestUID !== null ? paginationOldestUID : recentOldestUID;
+		if (queryUID === null) return;
+
+		loadingMore = true;
+		$('#load-more-loader').show();
+
+		firebase.database().ref('/posts').orderByChild('uid').endAt(queryUID - 1).limitToLast(BATCH_SIZE).once('value', function (snapshot) {
+			loadingMore = false;
+			$('#load-more-loader').hide();
+
+			let posts = [];
+			snapshot.forEach(function (childSnapshot) {
+				var childData = childSnapshot.val();
+				posts.push({ key: childSnapshot.key, texte: childData.texte, uid: childData.uid, og: childData.og });
+			});
+			posts.sort(function (a, b) { return b.uid - a.uid; });
+
+			if (posts.length === 0) {
+				allPostsLoaded = true;
+				$('#load-more-sentinel').hide();
+				return;
+			}
+
+			paginationOldestUID = posts[posts.length - 1].uid;
+
+			if (posts.length < BATCH_SIZE) {
+				allPostsLoaded = true;
+				$('#load-more-sentinel').hide();
+			}
+
+			appendPostsToDayGroups(posts);
 		});
 	}
 
@@ -193,57 +351,55 @@ $(document).ready(function () {
 	// Initialisation de Firebase
 	firebase.initializeApp(config);
 
-	// Récupération de la référence de la collection des posts
-	const ref = firebase.database().ref('/posts');
-
-	// Ecoute des modification de la collection post
-	ref.on('value', function (snapshot) {
-		$('#all-posts').empty();
-
-		// Collecte et tri des posts par date décroissante
+	// Ecoute en temps réel des BATCH_SIZE posts les plus récents
+	firebase.database().ref('/posts').orderByChild('uid').limitToLast(BATCH_SIZE).on('value', function (snapshot) {
 		let posts = [];
 		snapshot.forEach(function (childSnapshot) {
-			var childKey = childSnapshot.key;
 			var childData = childSnapshot.val();
-			posts.push({ key: childKey, texte: childData.texte, uid: childData.uid });
+			posts.push({ key: childSnapshot.key, texte: childData.texte, uid: childData.uid, og: childData.og });
 		});
 		posts.sort(function (a, b) { return b.uid - a.uid; });
 
-		// Regroupement par jour et rendu
-		let currentDayKey = null;
-		let $currentCardColumns = null;
-		posts.forEach(function (post) {
-			const dayKey = getDayKey(post.uid);
-			if (dayKey !== currentDayKey) {
-				currentDayKey = dayKey;
-				const label = getDayLabel(post.uid);
-				const $dayGroup = $('<div class="day-group"></div>');
-				$dayGroup.append(`<div class="day-separator"><span>${label}</span></div>`);
-				$currentCardColumns = $('<div class="card-columns"></div>');
-				$dayGroup.append($currentCardColumns);
-				$('#all-posts').append($dayGroup);
-			}
-			last_message = post.texte;
-			addPost(post.key, post.texte, post.uid, $currentCardColumns);
-		});
+		renderPostsIntoDayGroups(posts, $('#recent-posts'));
 
-		$('div.nb-posts span').text(snapshot.numChildren() + " posts");
-		$('div.nb-posts').show();
-		$('.post-text').linkify({
-			target: "_blank",
-			className: 'lien text-lighten-2'
-		});
-		$('.post').click(function (e) {
-			console.log(e.target)
-			if (!$(e.target).hasClass('lien') && !delete_mode) {
-				$("#box-details div.content").html($(this).html());
-				$("#box-details").show();
-			}
-		});
+		if (posts.length > 0) {
+			recentOldestUID = posts[posts.length - 1].uid;
+			last_message = posts[0].texte;
+		}
+
+		applyPostProcessing();
+
+		// Afficher le sentinel si le lot est complet (il peut y avoir plus de posts à charger)
+		if (posts.length >= BATCH_SIZE && !allPostsLoaded) {
+			$('#load-more-sentinel').show();
+		}
+
 		if (!document.hasFocus()) notifyMe();
 		show_notif = true;
 		$("#loader").hide();
 		updateNbChars();
+	});
+
+	// Lazy loading avec IntersectionObserver
+	const sentinel = document.getElementById('load-more-sentinel');
+	if (sentinel && 'IntersectionObserver' in window) {
+		const observer = new IntersectionObserver(function (entries) {
+			entries.forEach(function (entry) {
+				if (entry.isIntersecting) loadMorePosts();
+			});
+		}, { threshold: 0.1 });
+		observer.observe(sentinel);
+	}
+
+	// Gestion des clics sur les posts via délégation d'événements (modale + suppression)
+	$('#all-posts').on('click', '.post', function (e) {
+		if (delete_mode) {
+			const key = $(this).attr('id');
+			firebase.database().ref('/posts/' + key).remove();
+		} else if (!$(e.target).hasClass('lien')) {
+			$("#box-details div.content").html($(this).html());
+			$("#box-details").show();
+		}
 	});
 
 	$('#box-details').click(function (e) {

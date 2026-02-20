@@ -20,6 +20,62 @@ if (isset($_GET["f"]) and !empty($_GET["f"])) {
 	unlink($fn);
 	header("Location: /");
 	exit;
+} else if (isset($_GET["og"]) and !empty($_GET["og"])) {
+	header('Content-Type: application/json; charset=utf-8');
+	$url = trim($_GET["og"]);
+
+	if (!filter_var($url, FILTER_VALIDATE_URL) || !preg_match('/^https?:\/\//i', $url)) {
+		echo json_encode(['error' => 'URL invalide']);
+		exit;
+	}
+
+	$host = parse_url($url, PHP_URL_HOST);
+	if ($host) {
+		$ip = gethostbyname($host);
+		if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false) {
+			echo json_encode(['error' => 'URL non autorisée']);
+			exit;
+		}
+	}
+
+	$context = stream_context_create([
+		'http' => [
+			'method' => 'GET',
+			'header' => "User-Agent: Mozilla/5.0 (compatible; ShashaBot/1.0)\r\nAccept: text/html\r\n",
+			'timeout' => 5,
+			'follow_location' => true,
+			'max_redirects' => 3,
+		],
+		'ssl' => ['verify_peer' => true, 'verify_peer_name' => true]
+	]);
+
+	$html = @file_get_contents($url, false, $context, 0, 102400);
+	if ($html === false) {
+		echo json_encode(['error' => 'Impossible de récupérer la page']);
+		exit;
+	}
+
+	$og = [];
+	preg_match_all('/<meta[^>]+property=["\']og:([^"\']+)["\'][^>]+content=["\']([^"\']*)["\'][^>]*\/?>/i', $html, $m1);
+	for ($i = 0; $i < count($m1[1]); $i++) {
+		$og[$m1[1][$i]] = html_entity_decode($m1[2][$i], ENT_QUOTES, 'UTF-8');
+	}
+	preg_match_all('/<meta[^>]+content=["\']([^"\']*)["\'][^>]+property=["\']og:([^"\']+)["\'][^>]*\/?>/i', $html, $m2);
+	for ($i = 0; $i < count($m2[2]); $i++) {
+		if (!isset($og[$m2[2][$i]])) $og[$m2[2][$i]] = html_entity_decode($m2[1][$i], ENT_QUOTES, 'UTF-8');
+	}
+	if (empty($og['title']) && preg_match('/<title[^>]*>([^<]+)<\/title>/i', $html, $t)) {
+		$og['title'] = html_entity_decode(trim($t[1]), ENT_QUOTES, 'UTF-8');
+	}
+
+	$result = [];
+	if (!empty($og['title']))       $result['title']       = mb_substr($og['title'], 0, 200);
+	if (!empty($og['description'])) $result['description'] = mb_substr($og['description'], 0, 300);
+	if (!empty($og['image']))       $result['image']       = $og['image'];
+	if (!empty($og['site_name']))   $result['site_name']   = mb_substr($og['site_name'], 0, 100);
+
+	echo json_encode($result);
+	exit;
 }
 
 function restant($secs)
@@ -160,11 +216,58 @@ function taille_format($taille)
 		.day-separator span {
 			padding: 0 12px;
 		}
+
+		.og-preview {
+			border-radius: calc(.25rem - 1px) calc(.25rem - 1px) 0 0;
+			overflow: hidden;
+			border-bottom: 1px solid rgba(0, 0, 0, .125);
+			cursor: pointer;
+		}
+
+		.og-image {
+			width: 100%;
+			max-height: 160px;
+			object-fit: cover;
+			display: block;
+		}
+
+		.og-text {
+			padding: 8px 12px;
+		}
+
+		.og-site {
+			display: block;
+			font-size: .65rem;
+			text-transform: uppercase;
+			color: #6c757d;
+			letter-spacing: .5px;
+			margin-bottom: 2px;
+		}
+
+		.og-title {
+			display: block;
+			font-size: .82rem;
+			font-weight: 600;
+			line-height: 1.3;
+			color: #212529;
+			margin-bottom: 3px;
+		}
+
+		.og-description {
+			font-size: .73rem;
+			color: #6c757d;
+			line-height: 1.4;
+			margin-bottom: 0;
+			display: -webkit-box;
+			-webkit-line-clamp: 2;
+			-webkit-box-orient: vertical;
+			overflow: hidden;
+		}
 	</style>
 </head>
 
 <body>
-	<div class="m-auto text-center" style="font-size: .7rem;"><span id="version" class="bg-success p-1 text-white rounded-bottom">1.00.00</span></div>
+	<div class="m-auto text-center" style="font-size: .7rem;"><span id="version" class="bg-success p-1 text-white rounded-bottom">1.03.00</span></div>
 	<div class="container mb-5">
 		<form id="form-ecrire-post" class="mb-3 mt-2">
 			<fieldset>
@@ -203,7 +306,16 @@ function taille_format($taille)
 		<div class="border-top text-center nb-posts animate__animated animate__fadeIn">
 			<span class="border text-white p-1 rounded"></span>
 		</div>
-		<div class="mt-3" id="all-posts"></div>
+		<div class="mt-3" id="all-posts">
+			<div id="recent-posts"></div>
+			<div id="older-posts"></div>
+			<div id="load-more-sentinel" class="text-center py-2" style="display:none">
+				<div id="load-more-loader" class="d-flex justify-content-center align-items-center" style="display:none">
+					<div class="spinner-border spinner-border-sm text-secondary" role="status"></div>
+					<span class="text-muted ml-2">Chargement des posts anciens...</span>
+				</div>
+			</div>
+		</div>
 		<div id="loader">
 			<div class="d-flex justify-content-center flex-column align-items-center mt-5">
 				<div class="spinner-border" role="status">
