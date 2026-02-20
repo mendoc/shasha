@@ -5,6 +5,7 @@ $(document).ready(function () {
 	let windowObjectReference;
 	let last_message = "Nouveau post publié sur la plateforme de partage";
 	let last_post_key = null;
+	let last_notified_uid = null;
 	window.name = "post_app_v2";
 
 	// Lazy loading
@@ -402,7 +403,8 @@ $(document).ready(function () {
 			$('#load-more-sentinel').show();
 		}
 
-		if (!document.hasFocus()) notifyMe();
+		if (!document.hasFocus() && posts.length > 0 && posts[0].uid !== last_notified_uid) notifyMe();
+		if (posts.length > 0) last_notified_uid = posts[0].uid;
 		show_notif = true;
 		$("#loader").hide();
 		updateNbChars();
