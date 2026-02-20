@@ -203,7 +203,16 @@ function taille_format($taille)
 		<div class="border-top text-center nb-posts animate__animated animate__fadeIn">
 			<span class="border text-white p-1 rounded"></span>
 		</div>
-		<div class="mt-3" id="all-posts"></div>
+		<div class="mt-3" id="all-posts">
+			<div id="recent-posts"></div>
+			<div id="older-posts"></div>
+			<div id="load-more-sentinel" class="text-center py-2" style="display:none">
+				<div id="load-more-loader" class="d-flex justify-content-center align-items-center" style="display:none">
+					<div class="spinner-border spinner-border-sm text-secondary" role="status"></div>
+					<span class="text-muted ml-2">Chargement des posts anciens...</span>
+				</div>
+			</div>
+		</div>
 		<div id="loader">
 			<div class="d-flex justify-content-center flex-column align-items-center mt-5">
 				<div class="spinner-border" role="status">
