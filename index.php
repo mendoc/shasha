@@ -116,6 +116,22 @@ function taille_format($taille)
 			line-break: anywhere;
 		}
 
+		#box-update {
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background-color: rgba(0, 0, 0, .5);
+			z-index: 9999;
+		}
+
+		#box-update .content {
+			background-color: #ffffff;
+			max-width: 400px;
+			width: 90%;
+		}
+
 		#version {
 			opacity: 0;
 			transition: opacity .5s;
@@ -273,6 +289,16 @@ function taille_format($taille)
 		<div class="back d-flex justify-content-center align-items-center h-100">
 			<div class="content shadow-lg p-3 mb-5 bg-white rounded w-75 animate__animated animate__zoomIn animate__faster">
 				Le contenu du post en grand
+			</div>
+		</div>
+	</div>
+	<div id="box-update" style="display:none">
+		<div class="d-flex justify-content-center align-items-center h-100">
+			<div class="content shadow-lg p-4 bg-white rounded text-center animate__animated animate__zoomIn animate__faster">
+				<p class="mb-1" style="font-size:2rem;">&#x1F4E6;</p>
+				<h5 class="font-weight-bold mb-2">Mise à jour disponible</h5>
+				<p class="text-muted mb-3" style="font-size:.9rem;">Une nouvelle version de l'application est disponible. Mettez à jour pour profiter des dernières améliorations.</p>
+				<button id="btn-update" class="btn btn-primary btn-block">Mettre à jour</button>
 			</div>
 		</div>
 	</div>
