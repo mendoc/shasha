@@ -77,10 +77,6 @@ function taille_format($taille)
 	<title>Shasha | Plateforme de partage</title>
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css" integrity="sha384-zCbKRCUGaJDkqS1kPbPd7TveP5iyJE0EjAuZQTgFLD2ylzuqKfdKlfG/eSrtxUkn" crossorigin="anonymous">
 
-	<link rel="preconnect" href="https://fonts.googleapis.com">
-	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-	<link href="https://fonts.googleapis.com/css2?family=Work+Sans&display=swap" rel="stylesheet">
-
 	<link href="assets/css/animate.min.css" rel="stylesheet">
 
 	<link rel="icon" href="assets/img/logo.png" />
@@ -92,7 +88,7 @@ function taille_format($taille)
 
 	<style>
 		body {
-			font-family: 'Work Sans', sans-serif;
+			font-family: Arial, sans-serif;
 			margin: 0 auto;
 		}
 
