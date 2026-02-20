@@ -291,7 +291,7 @@ $(document).ready(function () {
 		else {
 			if (!show_notif) return;
 			let notification = new Notification('Nouveau post', {
-				icon: 'http://sdz-upload.s3.amazonaws.com/prod/upload/ic_launcher-web1.png',
+				icon: '/assets/img/logo.png',
 				body: last_message,
 			});
 
