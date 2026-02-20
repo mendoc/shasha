@@ -223,11 +223,39 @@ function taille_format($taille)
 			-webkit-box-orient: vertical;
 			overflow: hidden;
 		}
+
+		.btn-copy-link {
+			float: right;
+			background: none;
+			border: none;
+			padding: 2px 4px;
+			cursor: pointer;
+			color: #adb5bd;
+			opacity: 0;
+			transition: opacity .2s, color .15s;
+			line-height: 1;
+			border-radius: 4px;
+		}
+
+		.post:hover .btn-copy-link,
+		#box-details .btn-copy-link {
+			opacity: 1;
+		}
+
+		.btn-copy-link:hover {
+			color: #495057;
+		}
+
+		@media (max-width: 767px) {
+			.btn-copy-link {
+				opacity: 1;
+			}
+		}
 	</style>
 </head>
 
 <body>
-	<div class="m-auto text-center" style="font-size: .7rem;"><span id="version" class="bg-success p-1 text-white rounded-bottom">1.03.00</span></div>
+	<div class="m-auto text-center" style="font-size: .7rem;"><span id="version" class="bg-success p-1 text-white rounded-bottom">1.08.00</span></div>
 	<div class="container mb-5">
 		<form id="form-ecrire-post" class="mb-3 mt-2">
 			<fieldset>
