@@ -77,10 +77,6 @@ function taille_format($taille)
 	<title>Shasha | Plateforme de partage</title>
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css" integrity="sha384-zCbKRCUGaJDkqS1kPbPd7TveP5iyJE0EjAuZQTgFLD2ylzuqKfdKlfG/eSrtxUkn" crossorigin="anonymous">
 
-	<link rel="preconnect" href="https://fonts.googleapis.com">
-	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-	<link href="https://fonts.googleapis.com/css2?family=Work+Sans&display=swap" rel="stylesheet">
-
 	<link href="assets/css/animate.min.css" rel="stylesheet">
 
 	<link rel="icon" href="assets/img/logo.png" />
@@ -92,7 +88,7 @@ function taille_format($taille)
 
 	<style>
 		body {
-			font-family: 'Work Sans', sans-serif;
+			font-family: Arial, sans-serif;
 			margin: 0 auto;
 		}
 
@@ -251,11 +247,35 @@ function taille_format($taille)
 				opacity: 1;
 			}
 		}
+
+		/* Skeleton loaders */
+		.skeleton {
+			background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
+			background-size: 200% 100%;
+			animation: skeleton-shimmer 1.5s infinite;
+			border-radius: 4px;
+			display: block;
+		}
+
+		@keyframes skeleton-shimmer {
+			0% { background-position: 200% 0; }
+			100% { background-position: -200% 0; }
+		}
+
+		.skeleton-line {
+			height: 14px;
+			margin-bottom: 8px;
+		}
+
+		.skeleton-time {
+			height: 10px;
+			width: 35px;
+		}
 	</style>
 </head>
 
 <body>
-	<div class="m-auto text-center" style="font-size: .7rem;"><span id="version" class="bg-success p-1 text-white rounded-bottom">1.08.00</span></div>
+	<div class="m-auto text-center" style="font-size: .7rem;"><span id="version" class="bg-success p-1 text-white rounded-bottom">...</span></div>
 	<div class="container mb-5">
 		<form id="form-ecrire-post" class="mb-3 mt-2">
 			<fieldset>
@@ -305,11 +325,47 @@ function taille_format($taille)
 			</div>
 		</div>
 		<div id="loader">
-			<div class="d-flex justify-content-center flex-column align-items-center mt-5">
-				<div class="spinner-border" role="status">
-					<span class="sr-only">Loading...</span>
+			<div class="day-group mt-3">
+				<div class="day-separator">
+					<span class="skeleton skeleton-line" style="width: 80px;"></span>
 				</div>
-				<span class="font-italic mt-2">Chargement des posts ...</span>
+				<div class="card-columns">
+					<div class="card">
+						<div class="card-body">
+							<div class="skeleton skeleton-line" style="width: 100%;"></div>
+							<div class="skeleton skeleton-line" style="width: 75%;"></div>
+							<div class="skeleton skeleton-line" style="width: 55%;"></div>
+							<blockquote class="blockquote mb-0">
+								<footer class="blockquote-footer">
+									<span class="skeleton skeleton-time"></span>
+								</footer>
+							</blockquote>
+						</div>
+					</div>
+					<div class="card">
+						<div class="card-body">
+							<div class="skeleton skeleton-line" style="width: 90%;"></div>
+							<div class="skeleton skeleton-line" style="width: 50%;"></div>
+							<blockquote class="blockquote mb-0">
+								<footer class="blockquote-footer">
+									<span class="skeleton skeleton-time"></span>
+								</footer>
+							</blockquote>
+						</div>
+					</div>
+					<div class="card">
+						<div class="card-body">
+							<div class="skeleton skeleton-line" style="width: 85%;"></div>
+							<div class="skeleton skeleton-line" style="width: 100%;"></div>
+							<div class="skeleton skeleton-line" style="width: 40%;"></div>
+							<blockquote class="blockquote mb-0">
+								<footer class="blockquote-footer">
+									<span class="skeleton skeleton-time"></span>
+								</footer>
+							</blockquote>
+						</div>
+					</div>
+				</div>
 			</div>
 		</div>
 	</div>
