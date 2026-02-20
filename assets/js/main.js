@@ -433,17 +433,26 @@ $(document).ready(function () {
 		}
 	});
 
+	const ICON_COPY = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
+	const ICON_CHECK = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+
+	function copyWithFeedback($btn, text) {
+		navigator.clipboard.writeText(text);
+		$btn.html(ICON_CHECK).css('color', '#28a745');
+		setTimeout(function () {
+			$btn.html(ICON_COPY).css('color', '');
+		}, 2000);
+	}
+
 	// Copier le texte d'un post dans le presse-papier
 	$('#all-posts').on('click', '.btn-copy-link', function (e) {
 		e.stopPropagation();
-		const text = $(this).data('text');
-		navigator.clipboard.writeText(text);
+		copyWithFeedback($(this), $(this).data('text'));
 	});
 
 	$('#box-details').on('click', '.btn-copy-link', function (e) {
 		e.stopPropagation();
-		const text = $(this).data('text');
-		navigator.clipboard.writeText(text);
+		copyWithFeedback($(this), $(this).data('text'));
 	});
 
 	$('#box-details').click(function (e) {
