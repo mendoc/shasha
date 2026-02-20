@@ -237,7 +237,8 @@ function taille_format($taille)
 			border-radius: 4px;
 		}
 
-		.post:hover .btn-copy-link {
+		.post:hover .btn-copy-link,
+		#box-details .btn-copy-link {
 			opacity: 1;
 		}
 
