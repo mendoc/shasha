@@ -193,6 +193,7 @@ $(document).ready(function () {
 	// Rend un tableau de posts dans un conteneur en groupes par jour (vide le conteneur avant)
 	function renderPostsIntoDayGroups(posts, $container) {
 		$container.empty();
+		Object.keys(olderDayGroups).forEach(function (k) { delete olderDayGroups[k]; });
 		let currentDayKey = null;
 		let $currentCardColumns = null;
 		posts.forEach(function (post) {
@@ -205,6 +206,7 @@ $(document).ready(function () {
 				$currentCardColumns = $('<div class="card-columns"></div>');
 				$dayGroup.append($currentCardColumns);
 				$container.append($dayGroup);
+				olderDayGroups[dayKey] = $currentCardColumns;
 			}
 			addPost(post.key, post.texte, post.uid, post.og, $currentCardColumns);
 		});
