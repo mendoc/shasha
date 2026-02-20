@@ -115,7 +115,7 @@ $(document).ready(function () {
 
 	// Récupère les métadonnées Open Graph via le proxy og.php et les injecte dans la card
 	function fetchAndDisplayOG(key, url) {
-		fetch('/og.php?url=' + encodeURIComponent(url))
+		fetch('/?og=' + encodeURIComponent(url))
 			.then(function (r) { return r.json(); })
 			.then(function (data) {
 				if (!data || data.error) return;
