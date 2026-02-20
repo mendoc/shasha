@@ -372,6 +372,10 @@ $(document).ready(function () {
 		}
 	});
 
+	$("#btn-actualiser").click(function () {
+		location.reload();
+	});
+
 	$("#btn-charger-fichier").click(function () {
 		$('[name="fichier"]').click();
 	});
