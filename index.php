@@ -85,6 +85,22 @@ function taille_format($taille)
 
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 	<meta charset="utf-8" />
+	<meta name="description" content="Partagez vos fichiers et contenus en toute simplicité." />
+
+	<!-- Open Graph -->
+	<meta property="og:title" content="Shasha | Plateforme de partage" />
+	<meta property="og:description" content="Partagez vos fichiers et contenus en toute simplicité." />
+	<meta property="og:image" content="https://shasha.alwaysdata.net/assets/img/logo.png" />
+	<meta property="og:url" content="https://shasha.alwaysdata.net" />
+	<meta property="og:type" content="website" />
+	<meta property="og:site_name" content="Shasha" />
+	<meta property="og:locale" content="fr_FR" />
+
+	<!-- Twitter Card -->
+	<meta name="twitter:card" content="summary" />
+	<meta name="twitter:title" content="Shasha | Plateforme de partage" />
+	<meta name="twitter:description" content="Partagez vos fichiers et contenus en toute simplicité." />
+	<meta name="twitter:image" content="https://shasha.alwaysdata.net/assets/img/logo.png" />
 
 	<style>
 		body {
