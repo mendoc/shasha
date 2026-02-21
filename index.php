@@ -165,6 +165,7 @@ function taille_format($taille)
 
 		.nb-posts {
 			display: none;
+			margin-top: 1.5rem;
 		}
 
 		.nb-posts span {
