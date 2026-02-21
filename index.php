@@ -284,11 +284,11 @@ function taille_format($taille)
 
 		.btn-pin-file {
 			position: absolute;
-			top: 6px;
-			right: 6px;
+			top: 4px;
+			right: 4px;
 			background: none;
 			border: none;
-			padding: 2px 4px;
+			padding: 6px 8px;
 			cursor: pointer;
 			color: #adb5bd;
 			opacity: 0;

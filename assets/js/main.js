@@ -363,7 +363,8 @@ $(document).ready(function () {
 		return e.preventDefault();
 	});
 
-	$(`.file`).click(function () {
+	$(`.file`).click(function (e) {
+		if ($(e.target).closest('.btn-pin-file').length) return;
 		let fileURL = $(this).data("url");
 		if (delete_mode) {
 			location.href = `?d=${fileURL}`;
