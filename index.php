@@ -22,6 +22,10 @@ if (isset($_GET["f"]) and !empty($_GET["f"])) {
 	$path . $fn;
 	download_file($path . $fn);
 	exit;
+} else if (isset($_GET["p"]) and !empty($_GET["p"])) {
+	$fn = $_GET["p"];
+	preview_file($path . $fn);
+	exit;
 } else if (isset($_GET["d"]) and !empty($_GET["d"])) {
 	$fn_only = $_GET["d"];
 	$fn = $path . $fn_only;
@@ -65,6 +69,30 @@ function download_file($file)
 		readfile($file);
 		exit;
 	}
+}
+function preview_file($file)
+{
+	if (file_exists($file)) {
+		$ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+		$mime_types = [
+			'jpg'  => 'image/jpeg',
+			'jpeg' => 'image/jpeg',
+			'png'  => 'image/png',
+			'gif'  => 'image/gif',
+			'svg'  => 'image/svg+xml',
+			'pdf'  => 'application/pdf',
+		];
+		if (isset($mime_types[$ext])) {
+			header('Content-Type: ' . $mime_types[$ext]);
+			header('Cache-Control: public, max-age=3600');
+			readfile($file);
+		}
+	}
+}
+function is_image($filename)
+{
+	$ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+	return in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'svg']);
 }
 function reduire($str)
 {
@@ -373,6 +401,29 @@ function taille_format($taille)
 				transform: translateX(50%);
 			}
 		}
+
+		.file-preview-img {
+			width: 100%;
+			max-height: 160px;
+			object-fit: cover;
+			display: block;
+			border-radius: calc(.25rem - 1px) calc(.25rem - 1px) 0 0;
+			border-bottom: 1px solid rgba(0, 0, 0, .125);
+		}
+
+		.file-preview-pdf-wrapper {
+			height: 160px;
+			overflow: hidden;
+			border-radius: calc(.25rem - 1px) calc(.25rem - 1px) 0 0;
+			border-bottom: 1px solid rgba(0, 0, 0, .125);
+			background: #f0f0f0;
+			position: relative;
+		}
+
+		.file-preview-pdf-wrapper canvas {
+			width: 100%;
+			display: block;
+		}
 	</style>
 </head>
 
@@ -409,13 +460,22 @@ function taille_format($taille)
 				<?php foreach ($files as $f) : ?>
 					<?php $fn = str_replace($path, "", $f) ?>
 					<div class="card file" style="cursor: pointer" data-url="<?= $fn ?>">
+					<?php if (is_image($fn)) : ?>
+					<img src="?p=<?= urlencode($fn) ?>" class="file-preview-img" alt="Aperçu de <?= htmlspecialchars(basename($fn)) ?>">
+					<?php elseif (strtolower(pathinfo($fn, PATHINFO_EXTENSION)) === 'pdf') : ?>
+					<div class="file-preview-pdf-wrapper">
+						<canvas class="pdf-thumbnail" data-src="?p=<?= urlencode($fn) ?>"></canvas>
+					</div>
+					<?php endif; ?>
 						<div class="card-body text-center animate__animated animate__fadeIn">
 							<button class="btn-pin-file <?= in_array($fn, $pins) ? 'pinned' : '' ?>" data-file="<?= htmlspecialchars($fn) ?>" title="<?= in_array($fn, $pins) ? 'Désépingler' : 'Épingler' ?>">
 								<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="<?= in_array($fn, $pins) ? 'currentColor' : 'none' ?>" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" /></svg>
 							</button>
+							<?php if (!is_image($fn) && strtolower(pathinfo($fn, PATHINFO_EXTENSION)) !== 'pdf') : ?>
 							<svg xmlns="http://www.w3.org/2000/svg" style="height: 60px" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
 								<path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
 							</svg>
+							<?php endif; ?>
 							<p class="card-text mb-0"><?= reduire($fn) . " (" . taille_format(filesize($f)) . ")"; ?> </p>
 							<?php if (in_array($fn, $pins)) : ?>
 								<small class="text-success">Fichier épinglé</small>
@@ -522,6 +582,21 @@ function taille_format($taille)
 	<script src="https://www.gstatic.com/firebasejs/3.7.3/firebase.js"></script>
 	<script src="assets/js/main.js"></script>
 	<script src="assets/js/app.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+	<script>
+		pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+		document.querySelectorAll('.pdf-thumbnail').forEach(function(canvas) {
+			pdfjsLib.getDocument(canvas.dataset.src).promise.then(function(pdf) {
+				return pdf.getPage(1);
+			}).then(function(page) {
+				var scale = canvas.parentElement.clientWidth / page.getViewport({ scale: 1 }).width;
+				var viewport = page.getViewport({ scale: scale });
+				canvas.width = viewport.width;
+				canvas.height = viewport.height;
+				page.render({ canvasContext: canvas.getContext('2d'), viewport: viewport });
+			});
+		});
+	</script>
 </body>
 
 </html>
