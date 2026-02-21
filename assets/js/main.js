@@ -467,6 +467,18 @@ $(document).ready(function () {
 	$('#all-posts').on('click', '.post', function (e) {
 		if (delete_mode) {
 			const key = $(this).attr('id');
+			const $post = $(this);
+			const $cardColumns = $post.closest('.card-columns');
+			$post.remove();
+			if ($cardColumns.length && $cardColumns.find('.post').length === 0) {
+				Object.keys(olderDayGroups).forEach(function (dayKey) {
+					if (olderDayGroups[dayKey].is($cardColumns)) {
+						delete olderDayGroups[dayKey];
+					}
+				});
+				$cardColumns.closest('.day-group').remove();
+			}
+			updateLoadedCount();
 			firebase.database().ref('/posts/' + key).remove();
 		} else if (!$(e.target).hasClass('lien') && !$(e.target).closest('.btn-copy-link').length) {
 			const $modal = $("#box-details div.content");
