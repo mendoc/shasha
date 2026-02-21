@@ -22,6 +22,10 @@ if (isset($_GET["f"]) and !empty($_GET["f"])) {
 	$path . $fn;
 	download_file($path . $fn);
 	exit;
+} else if (isset($_GET["p"]) and !empty($_GET["p"])) {
+	$fn = $_GET["p"];
+	preview_file($path . $fn);
+	exit;
 } else if (isset($_GET["d"]) and !empty($_GET["d"])) {
 	$fn_only = $_GET["d"];
 	$fn = $path . $fn_only;
@@ -65,6 +69,29 @@ function download_file($file)
 		readfile($file);
 		exit;
 	}
+}
+function preview_file($file)
+{
+	if (file_exists($file)) {
+		$ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+		$mime_types = [
+			'jpg'  => 'image/jpeg',
+			'jpeg' => 'image/jpeg',
+			'png'  => 'image/png',
+			'gif'  => 'image/gif',
+			'svg'  => 'image/svg+xml',
+		];
+		if (isset($mime_types[$ext])) {
+			header('Content-Type: ' . $mime_types[$ext]);
+			header('Cache-Control: public, max-age=3600');
+			readfile($file);
+		}
+	}
+}
+function is_image($filename)
+{
+	$ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+	return in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'svg']);
 }
 function reduire($str)
 {
@@ -373,6 +400,15 @@ function taille_format($taille)
 				transform: translateX(50%);
 			}
 		}
+
+		.file-preview-img {
+			width: 100%;
+			max-height: 160px;
+			object-fit: cover;
+			display: block;
+			border-radius: calc(.25rem - 1px) calc(.25rem - 1px) 0 0;
+			border-bottom: 1px solid rgba(0, 0, 0, .125);
+		}
 	</style>
 </head>
 
@@ -409,6 +445,9 @@ function taille_format($taille)
 				<?php foreach ($files as $f) : ?>
 					<?php $fn = str_replace($path, "", $f) ?>
 					<div class="card file" style="cursor: pointer" data-url="<?= $fn ?>">
+					<?php if (is_image($fn)) : ?>
+					<img src="?p=<?= urlencode($fn) ?>" class="file-preview-img" alt="Aperçu de <?= htmlspecialchars(basename($fn)) ?>">
+					<?php endif; ?>
 						<div class="card-body text-center animate__animated animate__fadeIn">
 							<button class="btn-pin-file <?= in_array($fn, $pins) ? 'pinned' : '' ?>" data-file="<?= htmlspecialchars($fn) ?>" title="<?= in_array($fn, $pins) ? 'Désépingler' : 'Épingler' ?>">
 								<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="<?= in_array($fn, $pins) ? 'currentColor' : 'none' ?>" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" /></svg>
