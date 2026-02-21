@@ -574,7 +574,7 @@ $(document).ready(function () {
 	});
 
 	$('#btn-back-to-top').click(function () {
-		$('html, body').animate({ scrollTop: 0 }, 'fast');
+		window.scrollTo({ top: 0, behavior: 'smooth' });
 	});
 
 	// Annulation du mode delete avec la touche echap
