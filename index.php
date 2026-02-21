@@ -80,6 +80,7 @@ function preview_file($file)
 			'png'  => 'image/png',
 			'gif'  => 'image/gif',
 			'svg'  => 'image/svg+xml',
+			'pdf'  => 'application/pdf',
 		];
 		if (isset($mime_types[$ext])) {
 			header('Content-Type: ' . $mime_types[$ext]);
@@ -409,6 +410,20 @@ function taille_format($taille)
 			border-radius: calc(.25rem - 1px) calc(.25rem - 1px) 0 0;
 			border-bottom: 1px solid rgba(0, 0, 0, .125);
 		}
+
+		.file-preview-pdf-wrapper {
+			height: 160px;
+			overflow: hidden;
+			border-radius: calc(.25rem - 1px) calc(.25rem - 1px) 0 0;
+			border-bottom: 1px solid rgba(0, 0, 0, .125);
+			position: relative;
+		}
+
+		.file-preview-pdf-wrapper embed {
+			width: 100%;
+			height: 100%;
+			pointer-events: none;
+		}
 	</style>
 </head>
 
@@ -447,12 +462,16 @@ function taille_format($taille)
 					<div class="card file" style="cursor: pointer" data-url="<?= $fn ?>">
 					<?php if (is_image($fn)) : ?>
 					<img src="?p=<?= urlencode($fn) ?>" class="file-preview-img" alt="Aperçu de <?= htmlspecialchars(basename($fn)) ?>">
+					<?php elseif (strtolower(pathinfo($fn, PATHINFO_EXTENSION)) === 'pdf') : ?>
+					<div class="file-preview-pdf-wrapper">
+						<embed src="?p=<?= urlencode($fn) ?>" type="application/pdf">
+					</div>
 					<?php endif; ?>
 						<div class="card-body text-center animate__animated animate__fadeIn">
 							<button class="btn-pin-file <?= in_array($fn, $pins) ? 'pinned' : '' ?>" data-file="<?= htmlspecialchars($fn) ?>" title="<?= in_array($fn, $pins) ? 'Désépingler' : 'Épingler' ?>">
 								<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="<?= in_array($fn, $pins) ? 'currentColor' : 'none' ?>" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" /></svg>
 							</button>
-							<?php if (!is_image($fn)) : ?>
+							<?php if (!is_image($fn) && strtolower(pathinfo($fn, PATHINFO_EXTENSION)) !== 'pdf') : ?>
 							<svg xmlns="http://www.w3.org/2000/svg" style="height: 60px" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
 								<path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
 							</svg>
