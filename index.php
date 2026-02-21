@@ -413,13 +413,16 @@ function taille_format($taille)
 
 		.file-preview-pdf-wrapper {
 			height: 160px;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			background: #f8f8f8;
+			overflow: hidden;
 			border-radius: calc(.25rem - 1px) calc(.25rem - 1px) 0 0;
 			border-bottom: 1px solid rgba(0, 0, 0, .125);
-			color: #c0392b;
+			background: #f0f0f0;
+			position: relative;
+		}
+
+		.file-preview-pdf-wrapper canvas {
+			width: 100%;
+			display: block;
 		}
 	</style>
 </head>
@@ -461,9 +464,7 @@ function taille_format($taille)
 					<img src="?p=<?= urlencode($fn) ?>" class="file-preview-img" alt="Aperçu de <?= htmlspecialchars(basename($fn)) ?>">
 					<?php elseif (strtolower(pathinfo($fn, PATHINFO_EXTENSION)) === 'pdf') : ?>
 					<div class="file-preview-pdf-wrapper">
-						<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-							<path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
-						</svg>
+						<canvas class="pdf-thumbnail" data-src="?p=<?= urlencode($fn) ?>"></canvas>
 					</div>
 					<?php endif; ?>
 						<div class="card-body text-center animate__animated animate__fadeIn">
@@ -581,6 +582,21 @@ function taille_format($taille)
 	<script src="https://www.gstatic.com/firebasejs/3.7.3/firebase.js"></script>
 	<script src="assets/js/main.js"></script>
 	<script src="assets/js/app.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+	<script>
+		pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+		document.querySelectorAll('.pdf-thumbnail').forEach(function(canvas) {
+			pdfjsLib.getDocument(canvas.dataset.src).promise.then(function(pdf) {
+				return pdf.getPage(1);
+			}).then(function(page) {
+				var scale = canvas.parentElement.clientWidth / page.getViewport({ scale: 1 }).width;
+				var viewport = page.getViewport({ scale: scale });
+				canvas.width = viewport.width;
+				canvas.height = viewport.height;
+				page.render({ canvasContext: canvas.getContext('2d'), viewport: viewport });
+			});
+		});
+	</script>
 </body>
 
 </html>
