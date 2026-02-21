@@ -363,13 +363,36 @@ $(document).ready(function () {
 		return e.preventDefault();
 	});
 
-	$(`.file`).click(function () {
+	$(`.file`).click(function (e) {
+		if ($(e.target).closest('.btn-pin-file').length) return;
 		let fileURL = $(this).data("url");
 		if (delete_mode) {
 			location.href = `?d=${fileURL}`;
 		} else {
 			window.open(`?f=${fileURL}`);
 		}
+	});
+
+	// Épingler / désépingler un fichier
+	$('#all-files').on('click', '.btn-pin-file', function (e) {
+		e.stopPropagation();
+		if (delete_mode) return;
+		var $btn = $(this);
+		var filename = $btn.data('file');
+		fetch('epingler.php?f=' + encodeURIComponent(filename))
+			.then(function (r) { return r.json(); })
+			.then(function (data) {
+				if (data.pinned !== undefined) {
+					var $card = $btn.closest('.card');
+					if (data.pinned) {
+						$btn.addClass('pinned').attr('title', 'Désépingler');
+						$btn.find('svg').attr('fill', 'currentColor');
+						$card.find('small').text('Fichier épinglé').addClass('text-success');
+					} else {
+						location.reload();
+					}
+				}
+			});
 	});
 
 	$("#btn-actualiser").click(function () {

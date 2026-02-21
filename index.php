@@ -6,7 +6,14 @@ $path .= "/";
 $regex = $path . "*post-*";
 $expiration = 24 * 60 * 60;
 
-purge($regex, $expiration);
+// Chargement des fichiers épinglés
+$pins_file = $path . "shasha_pins.json";
+$pins = [];
+if (file_exists($pins_file)) {
+	$pins = json_decode(file_get_contents($pins_file), true) ?? [];
+}
+
+purge($regex, $expiration, $pins);
 
 $files = glob($regex);
 
@@ -16,8 +23,14 @@ if (isset($_GET["f"]) and !empty($_GET["f"])) {
 	download_file($path . $fn);
 	exit;
 } else if (isset($_GET["d"]) and !empty($_GET["d"])) {
-	$fn = $path . $_GET["d"];
+	$fn_only = $_GET["d"];
+	$fn = $path . $fn_only;
 	unlink($fn);
+	// Retirer le fichier de la liste des épinglés s'il y figure
+	if (in_array($fn_only, $pins)) {
+		$pins = array_values(array_filter($pins, function ($p) use ($fn_only) { return $p !== $fn_only; }));
+		file_put_contents($pins_file, json_encode($pins));
+	}
 	header("Location: /");
 	exit;
 }
@@ -29,10 +42,11 @@ function restant($secs)
 	if ($secs < 0) return "0 s";
 	return $secs . " s";
 }
-function purge($reg, $exp)
+function purge($reg, $exp, $pins = [])
 {
 	$fs = glob($reg);
 	foreach ($fs as $f) {
+		if (in_array(basename($f), $pins)) continue; // Ne pas supprimer les fichiers épinglés
 		if ((time() - filectime($f)) > $exp) {
 			unlink($f);
 		}
@@ -264,6 +278,45 @@ function taille_format($taille)
 			}
 		}
 
+		.file {
+			position: relative;
+		}
+
+		.btn-pin-file {
+			position: absolute;
+			top: 4px;
+			right: 4px;
+			background: none;
+			border: none;
+			padding: 6px 8px;
+			cursor: pointer;
+			color: #adb5bd;
+			opacity: 0;
+			transition: opacity .2s, color .15s;
+			line-height: 1;
+			border-radius: 4px;
+			z-index: 1;
+		}
+
+		.file:hover .btn-pin-file,
+		.btn-pin-file.pinned {
+			opacity: 1;
+		}
+
+		.btn-pin-file.pinned {
+			color: #004aad;
+		}
+
+		.btn-pin-file:hover {
+			color: #495057;
+		}
+
+		@media (max-width: 767px) {
+			.btn-pin-file {
+				opacity: 1;
+			}
+		}
+
 		/* Skeleton loaders */
 		.skeleton {
 			background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
@@ -316,7 +369,7 @@ function taille_format($taille)
 				<svg xmlns="http://www.w3.org/2000/svg" style="height: 20px" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
 					<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
 				</svg>
-				<span class="ml-1">Les fichiers de plus de 24h seront supprimés</span>
+				<span class="ml-1">Les fichiers de plus de 24h seront supprimés (sauf les fichiers épinglés)</span>
 			</small>
 			<hr>
 			<div class="card-columns false" id="all-files">
@@ -324,11 +377,18 @@ function taille_format($taille)
 					<?php $fn = str_replace($path, "", $f) ?>
 					<div class="card file" style="cursor: pointer" data-url="<?= $fn ?>">
 						<div class="card-body text-center animate__animated animate__fadeIn">
+							<button class="btn-pin-file <?= in_array($fn, $pins) ? 'pinned' : '' ?>" data-file="<?= htmlspecialchars($fn) ?>" title="<?= in_array($fn, $pins) ? 'Désépingler' : 'Épingler' ?>">
+								<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="<?= in_array($fn, $pins) ? 'currentColor' : 'none' ?>" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" /></svg>
+							</button>
 							<svg xmlns="http://www.w3.org/2000/svg" style="height: 60px" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
 								<path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
 							</svg>
 							<p class="card-text mb-0"><?= reduire($fn) . " (" . taille_format(filesize($f)) . ")"; ?> </p>
-							<small>Suppression dans <?= restant($expiration - (time() - filectime($f))) ?></small>
+							<?php if (in_array($fn, $pins)) : ?>
+								<small class="text-success">Fichier épinglé</small>
+							<?php else : ?>
+								<small>Suppression dans <?= restant($expiration - (time() - filectime($f))) ?></small>
+							<?php endif; ?>
 						</div>
 					</div>
 				<?php endforeach; ?>
