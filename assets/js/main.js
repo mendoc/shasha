@@ -564,6 +564,19 @@ $(document).ready(function () {
 		}
 	});
 
+	// Bouton retour en haut de la page
+	$(window).scroll(function () {
+		if ($(this).scrollTop() > 300) {
+			$('#btn-back-to-top').css('display', 'flex');
+		} else {
+			$('#btn-back-to-top').hide();
+		}
+	});
+
+	$('#btn-back-to-top').click(function () {
+		$('html, body').animate({ scrollTop: 0 }, 'fast');
+	});
+
 	// Annulation du mode delete avec la touche echap
 	$(document).keyup(function (e) {
 		var key = e.keyCode ? e.keyCode : e.which;

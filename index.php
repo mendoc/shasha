@@ -341,6 +341,38 @@ function taille_format($taille)
 			height: 10px;
 			width: 35px;
 		}
+
+		/* Bouton retour en haut */
+		#btn-back-to-top {
+			position: fixed;
+			bottom: 24px;
+			right: 24px;
+			background: #004aad;
+			color: #fff;
+			border: none;
+			border-radius: 50%;
+			width: 44px;
+			height: 44px;
+			display: none;
+			align-items: center;
+			justify-content: center;
+			cursor: pointer;
+			box-shadow: 0 2px 8px rgba(0, 0, 0, .25);
+			z-index: 1000;
+			opacity: .85;
+			transition: opacity .2s;
+		}
+
+		#btn-back-to-top:hover {
+			opacity: 1;
+		}
+
+		@media (max-width: 767px) {
+			#btn-back-to-top {
+				right: 50%;
+				transform: translateX(50%);
+			}
+		}
 	</style>
 </head>
 
@@ -470,6 +502,11 @@ function taille_format($taille)
 			</div>
 		</div>
 	</div>
+	<button id="btn-back-to-top" title="Retour en haut de la page">
+		<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+			<path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7" />
+		</svg>
+	</button>
 	<div style="display:none">
 		<form id="form-charger-fichier" action="charger.php" method="post" enctype="multipart/form-data">
 			<input id="charger-fichier" type="file" name="fichier">
