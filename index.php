@@ -419,6 +419,16 @@ function taille_format($taille)
 			position: relative;
 		}
 
+		.file-preview-pdf-wrapper::after {
+			content: '';
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			z-index: 1;
+		}
+
 		.file-preview-pdf-wrapper embed {
 			width: 100%;
 			height: 100%;
@@ -464,7 +474,7 @@ function taille_format($taille)
 					<img src="?p=<?= urlencode($fn) ?>" class="file-preview-img" alt="Aperçu de <?= htmlspecialchars(basename($fn)) ?>">
 					<?php elseif (strtolower(pathinfo($fn, PATHINFO_EXTENSION)) === 'pdf') : ?>
 					<div class="file-preview-pdf-wrapper">
-						<embed src="?p=<?= urlencode($fn) ?>" type="application/pdf">
+						<embed src="?p=<?= urlencode($fn) ?>#toolbar=0&navpanes=0" type="application/pdf">
 					</div>
 					<?php endif; ?>
 						<div class="card-body text-center animate__animated animate__fadeIn">
