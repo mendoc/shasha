@@ -254,9 +254,35 @@ $(document).ready(function () {
 	}
 
 	function applyPostProcessing() {
-		$('.post-text').linkify({
-			target: "_blank",
-			className: 'lien text-lighten-2'
+		$('.post-text').each(function() {
+			const $el = $(this);
+			if ($el.data('linkified')) return;
+			$el.data('linkified', true);
+
+			const fullText = $el.data('full-text');
+			const isDisplayTruncated = fullText && $el.text() !== fullText;
+
+			if (isDisplayTruncated) {
+				// Linkify the full text in a temporary element to extract complete URLs
+				const $temp = $('<span>').text(fullText);
+				$temp.linkify({ target: '_blank', className: 'lien text-lighten-2' });
+				const fullUrls = [];
+				$temp.find('.lien').each(function() {
+					fullUrls.push($(this).attr('href'));
+				});
+
+				// Linkify the truncated display text
+				$el.linkify({ target: '_blank', className: 'lien text-lighten-2' });
+
+				// Replace truncated hrefs with the complete URLs from the full text
+				$el.find('.lien').each(function(i) {
+					if (i < fullUrls.length) {
+						$(this).attr('href', fullUrls[i]);
+					}
+				});
+			} else {
+				$el.linkify({ target: '_blank', className: 'lien text-lighten-2' });
+			}
 		});
 		updateLoadedCount();
 	}
