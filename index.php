@@ -424,6 +424,76 @@ function taille_format($taille)
 			width: 100%;
 			display: block;
 		}
+
+		/* Config modal */
+		#box-config {
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background-color: rgba(0, 0, 0, .5);
+			z-index: 9999;
+		}
+
+		#box-config .content {
+			background-color: #ffffff;
+			max-width: 480px;
+			width: 90%;
+		}
+
+		/* Tag input */
+		.tag-input-wrapper {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 6px;
+			padding: 8px;
+			border: 1px solid #ced4da;
+			border-radius: .25rem;
+			cursor: text;
+			min-height: 46px;
+			align-items: center;
+		}
+
+		.tag-input-wrapper:focus-within {
+			border-color: #80bdff;
+			box-shadow: 0 0 0 .2rem rgba(0, 123, 255, .25);
+		}
+
+		.tag-item {
+			display: inline-flex;
+			align-items: center;
+			background: #e9ecef;
+			border-radius: 3px;
+			padding: 2px 6px;
+			font-size: .8rem;
+			font-weight: 500;
+			color: #343a40;
+		}
+
+		.tag-item .tag-remove {
+			background: none;
+			border: none;
+			padding: 0;
+			margin-left: 5px;
+			cursor: pointer;
+			color: #6c757d;
+			line-height: 1;
+			font-size: .9rem;
+		}
+
+		.tag-item .tag-remove:hover {
+			color: #dc3545;
+		}
+
+		#tag-input-field {
+			border: none;
+			outline: none;
+			flex: 1;
+			min-width: 80px;
+			font-size: .85rem;
+			padding: 2px 4px;
+		}
 	</style>
 </head>
 
@@ -559,6 +629,21 @@ function taille_format($taille)
 				<h5 class="font-weight-bold mb-2">Mise à jour disponible</h5>
 				<p class="text-muted mb-3" style="font-size:.9rem;">Une nouvelle version de l'application est disponible. Mettez à jour pour profiter des dernières améliorations.</p>
 				<button id="btn-update" class="btn btn-primary btn-block">Mettre à jour</button>
+			</div>
+		</div>
+	</div>
+	<div id="box-config" style="display:none">
+		<div class="d-flex justify-content-center align-items-center h-100">
+			<div class="content shadow-lg p-4 bg-white rounded animate__animated animate__zoomIn animate__faster">
+				<h5 class="font-weight-bold mb-3">Extensions autorisées</h5>
+				<div class="tag-input-wrapper" id="tag-input-wrapper">
+					<input type="text" id="tag-input-field" placeholder="Ajouter une extension…">
+				</div>
+				<small class="text-muted d-block mt-2">Appuyez sur Entrée ou espace pour ajouter. Cliquez sur × pour retirer.</small>
+				<div class="d-flex justify-content-end mt-3">
+					<button id="btn-config-cancel" class="btn btn-secondary btn-sm mr-2">Annuler</button>
+					<button id="btn-config-save" class="btn btn-primary btn-sm">Enregistrer</button>
+				</div>
 			</div>
 		</div>
 	</div>

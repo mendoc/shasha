@@ -538,6 +538,107 @@ $(document).ready(function () {
 			$("#box-details").hide();
 	});
 
+	// ======================== Config modal ========================
+
+	function addTag(ext) {
+		ext = ext.replace(/[^a-z0-9]/g, '').toLowerCase();
+		if (!ext) return;
+		// Prevent duplicates
+		const existing = $('#tag-input-wrapper .tag-item').map(function () {
+			return $(this).data('ext');
+		}).get();
+		if (existing.includes(ext)) return;
+
+		const $tag = $(`<span class="tag-item" data-ext="${ext}">${ext}<button class="tag-remove" title="Retirer">&times;</button></span>`);
+		$tag.find('.tag-remove').on('click', function () {
+			$tag.remove();
+		});
+		$('#tag-input-field').before($tag);
+	}
+
+	function openConfigModal() {
+		$('#tag-input-wrapper .tag-item').remove();
+		$('#tag-input-field').val('');
+		fetch('config.php')
+			.then(function (r) { return r.json(); })
+			.then(function (data) {
+				(data.extensions || []).forEach(addTag);
+				$('#box-config').show();
+				$('#tag-input-field').focus();
+			})
+			.catch(function () {
+				$('#box-config').show();
+				$('#tag-input-field').focus();
+			});
+	}
+
+	$('#tag-input-wrapper').on('click', function (e) {
+		if (!$(e.target).hasClass('tag-remove')) {
+			$('#tag-input-field').focus();
+		}
+	});
+
+	$('#tag-input-field').on('keydown', function (e) {
+		var key = e.keyCode || e.which;
+		if (key === 13 || key === 32) {
+			e.preventDefault();
+			var val = $(this).val().trim();
+			if (val) {
+				addTag(val);
+				$(this).val('');
+			}
+		} else if (key === 8 && $(this).val() === '') {
+			$('#tag-input-wrapper .tag-item').last().remove();
+		}
+	});
+
+	$('#tag-input-field').on('blur', function () {
+		var val = $(this).val().trim();
+		if (val) {
+			addTag(val);
+			$(this).val('');
+		}
+	});
+
+	$('#btn-config-cancel').on('click', function () {
+		$('#box-config').hide();
+		$('#post-content').val('');
+		updateNbChars();
+	});
+
+	$('#btn-config-save').on('click', function () {
+		var extensions = $('#tag-input-wrapper .tag-item').map(function () {
+			return $(this).data('ext');
+		}).get();
+
+		fetch('config.php', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ extensions: extensions })
+		})
+			.then(function (r) { return r.json(); })
+			.then(function () {
+				$('#box-config').hide();
+				$('#post-content').val('');
+				updateNbChars();
+			})
+			.catch(function () {
+				$('#box-config').hide();
+				$('#post-content').val('');
+				updateNbChars();
+			});
+	});
+
+	$('#box-config').on('click', function (e) {
+		if ($(e.target).is('#box-config')) {
+			$('#box-config').hide();
+			$('#post-content').val('');
+			updateNbChars();
+		}
+	});
+
+	// ===============================================================
+
 	// Ecoute des touches dans le champ de saisie du post
 	$('#post-content').keyup(function (e) {
 		var key = e.keyCode;
@@ -558,6 +659,10 @@ $(document).ready(function () {
 					$('#post-content').val('!delete');
 				}
 				delete_mode = !delete_mode;
+			} else if (val === "!config") {
+				$('#post-content').val('');
+				updateNbChars();
+				openConfigModal();
 			} else {
 				writeNewPost(val);
 			}
