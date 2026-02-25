@@ -62,7 +62,14 @@ if ($_FILES["fichier"]["error"] !== 0) {
 }
 
 $uploadOk       = 1;
-$extensions     = ["jpg", "pdf", "png", "gif", "jpeg", "zip", "docx", "csv", "svg", "wav", "stl", "txt"];
+$config_file    = $upload_tmp_dir . "shasha_config.json";
+$default_extensions = ["jpg", "pdf", "png", "gif", "jpeg", "zip", "docx", "csv", "svg", "wav", "stl", "txt"];
+if (file_exists($config_file)) {
+	$config = json_decode(file_get_contents($config_file), true);
+	$extensions = $config['extensions'] ?? $default_extensions;
+} else {
+	$extensions = $default_extensions;
+}
 $target_dir     = $upload_tmp_dir . "/";
 $file_to_upload = $target_dir . basename($_FILES["fichier"]["name"]);
 $imageFileType  = strtolower(pathinfo($file_to_upload, PATHINFO_EXTENSION));
