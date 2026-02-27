@@ -428,12 +428,16 @@ $(document).ready(function () {
 	if ('serviceWorker' in navigator && 'PushManager' in window) {
 		navigator.serviceWorker.ready.then(function(registration) {
 			try {
+				// Clé VAPID publique — Firebase Console > Paramètres du projet > Cloud Messaging > Web Push certificates
+				const VAPID_KEY = 'VAPID_PUBLIC_KEY_HERE';
+
 				const messaging = firebase.messaging();
-				messaging.useServiceWorker(registration);
 
 				const doSubscribe = function() {
-					messaging.getToken().then(function(token) {
-						console.log('token', token);
+					messaging.getToken({
+						vapidKey: VAPID_KEY,
+						serviceWorkerRegistration: registration
+					}).then(function(token) {
 						if (token) {
 							fetch('subscribe.php', {
 								method: 'POST',
