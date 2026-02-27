@@ -8,7 +8,7 @@ firebase.initializeApp({
     projectId: "nomadic-rush-162313",
     storageBucket: "nomadic-rush-162313.appspot.com",
     messagingSenderId: "167801823211",
-    appId: "FIREBASE_APP_ID_HERE"
+    appId: "1:167801823211:web:d788e011834f5528a683ae"
 });
 
 const messaging = firebase.messaging();
