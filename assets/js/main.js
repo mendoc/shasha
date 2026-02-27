@@ -430,7 +430,7 @@ $(document).ready(function () {
 		navigator.serviceWorker.ready.then(function(registration) {
 			try {
 				// Clé VAPID publique — Firebase Console > Paramètres du projet > Cloud Messaging > Web Push certificates
-				const VAPID_KEY = 'VAPID_PUBLIC_KEY_HERE';
+				const VAPID_KEY = 'BDDTdrPPjD_YHZ-W4MZEtrYF-kOFmLULZstd2JV4Ba0B_M_oTPmb0jl1VfELemsbGfmNF_VfwA04BXqmPZwVTsM';
 
 				const messaging = firebase.messaging();
 
