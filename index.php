@@ -664,7 +664,9 @@ function taille_format($taille)
 	<script type="text/javascript" src="assets/js/linkify-jquery.min.js"></script>
 
 	<!-- Firebase -->
-	<script src="https://www.gstatic.com/firebasejs/3.7.3/firebase.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-messaging.js"></script>
 	<script src="assets/js/main.js"></script>
 	<script src="assets/js/app.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
