@@ -1,7 +1,10 @@
 importScripts('https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js');
 importScripts('https://www.gstatic.com/firebasejs/8.10.1/firebase-messaging.js');
 
-firebase.initializeApp({ messagingSenderId: "167801823211" });
+firebase.initializeApp({
+    projectId: "nomadic-rush-162313",
+    messagingSenderId: "167801823211"
+});
 
 const messaging = firebase.messaging();
 

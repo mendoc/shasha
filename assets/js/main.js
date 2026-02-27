@@ -20,6 +20,7 @@ $(document).ready(function () {
 		apiKey: "AIzaSyC3pt7TQXG32aworFO6Zp4JgrVz1g8jXLQ",
 		authDomain: "nomadic-rush-162313.firebaseapp.com",
 		databaseURL: "https://nomadic-rush-162313.firebaseio.com",
+		projectId: "nomadic-rush-162313",
 		storageBucket: "nomadic-rush-162313.appspot.com",
 		messagingSenderId: "167801823211"
 	};
