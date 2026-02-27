@@ -57,7 +57,18 @@ $(document).ready(function () {
 		$('#post-content').val('');
 
 		// Mise à jour de la collection
-		return firebase.database().ref().update(updates);
+		const promise = firebase.database().ref().update(updates);
+
+		// Envoyer une notification push aux appareils hors ligne
+		promise.then(function() {
+			fetch('push.php', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ postKey: newPostKey, texte: texte })
+			}).catch(function() {});
+		});
+
+		return promise;
 	}
 
 	function zeroBefore(num) {
@@ -413,12 +424,56 @@ $(document).ready(function () {
 	// Suppression des posts vieux de plus d'un mois au chargement
 	deleteOldPosts();
 
+	// Initialisation Firebase Messaging pour les notifications en arrière-plan
+	if ('serviceWorker' in navigator && 'PushManager' in window) {
+		navigator.serviceWorker.ready.then(function(registration) {
+			try {
+				const messaging = firebase.messaging();
+				messaging.useServiceWorker(registration);
+
+				const doSubscribe = function() {
+					messaging.getToken().then(function(token) {
+						if (token) {
+							fetch('subscribe.php', {
+								method: 'POST',
+								headers: { 'Content-Type': 'application/json' },
+								body: JSON.stringify({ token: token })
+							}).catch(function() {});
+						}
+					}).catch(function() {});
+				};
+
+				if (Notification.permission === 'granted') {
+					doSubscribe();
+				} else if (Notification.permission === 'default') {
+					messaging.requestPermission().then(doSubscribe).catch(function() {});
+				}
+			} catch(e) {
+				// Firebase Messaging non disponible ou non supporté
+			}
+		});
+
+		// Écoute des messages du service worker (focus sur un post depuis une notification)
+		navigator.serviceWorker.addEventListener('message', function(event) {
+			if (event.data && event.data.type === 'SHOW_POST' && event.data.postKey) {
+				showPostModalOrFetch(event.data.postKey);
+			}
+		});
+	}
+
 	// Traitement du texte partagé via le Web Share Target (depuis une autre app)
 	const urlParams = new URLSearchParams(window.location.search);
 	const sharedText = urlParams.get('shared_text');
 	if (sharedText) {
 		window.history.replaceState({}, document.title, window.location.pathname);
 		writeNewPost(sharedText);
+	}
+
+	// Affichage d'un post au lancement depuis une notification (app était fermée)
+	const notifPostKey = urlParams.get('notif_post');
+	if (notifPostKey) {
+		window.history.replaceState({}, document.title, window.location.pathname);
+		window._pendingNotifPostKey = notifPostKey;
 	}
 
 	// Ecoute en temps réel des BATCH_SIZE posts les plus récents
@@ -450,6 +505,13 @@ $(document).ready(function () {
 		show_notif = true;
 		$("#loader").hide();
 		updateNbChars();
+
+		// Afficher le post depuis une notification (app était fermée)
+		if (window._pendingNotifPostKey) {
+			const pendingKey = window._pendingNotifPostKey;
+			window._pendingNotifPostKey = null;
+			showPostModalOrFetch(pendingKey);
+		}
 	});
 
 	// Lazy loading avec IntersectionObserver
@@ -496,6 +558,33 @@ $(document).ready(function () {
 
 	const ICON_COPY = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
 	const ICON_CHECK = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+
+	// Affiche un post dans la modale, ou le récupère depuis Firebase s'il n'est pas dans le DOM
+	function showPostModalOrFetch(key) {
+		const $post = $('#' + key);
+		if ($post.length) {
+			showPostModal(key);
+		} else {
+			firebase.database().ref('/posts/' + key).once('value', function(snap) {
+				const data = snap.val();
+				if (!data) return;
+				const escapedTexte = data.texte.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+				const $modal = $("#box-details div.content");
+				$modal.html(
+					`<div class="card-body">
+						<p class="card-text post-text" data-full-text="${escapedTexte}">${data.texte}</p>
+						<blockquote class="blockquote mb-0">
+							<footer class="blockquote-footer">
+								<button class="btn-copy-link" data-text="${escapedTexte}" title="Copier">${ICON_COPY}</button>
+							</footer>
+						</blockquote>
+					</div>`
+				);
+				$modal.find('.post-text').linkify({ target: "_blank", className: 'lien text-lighten-2' });
+				$("#box-details").show();
+			});
+		}
+	}
 
 	// Affiche le contenu d'un post dans la modale (utilisé au clic sur une notification)
 	function showPostModal(key) {

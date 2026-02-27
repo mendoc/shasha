@@ -1,5 +1,6 @@
 window.addEventListener("DOMContentLoaded", async event => {
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register("sw.php");
+        const registration = await navigator.serviceWorker.register("sw.php");
+        window._swRegistration = registration;
     }
 });
