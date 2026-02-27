@@ -433,6 +433,7 @@ $(document).ready(function () {
 
 				const doSubscribe = function() {
 					messaging.getToken().then(function(token) {
+						console.log('token', token);
 						if (token) {
 							fetch('subscribe.php', {
 								method: 'POST',
@@ -440,7 +441,7 @@ $(document).ready(function () {
 								body: JSON.stringify({ token: token })
 							}).catch(function() {});
 						}
-					}).catch(function() {});
+					}).catch(console.error);
 				};
 
 				if (Notification.permission === 'granted') {
@@ -450,6 +451,7 @@ $(document).ready(function () {
 				}
 			} catch(e) {
 				// Firebase Messaging non disponible ou non supporté
+				console.log('Firebase Messaging non disponible ou non supporté');
 			}
 		});
 
