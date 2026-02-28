@@ -66,12 +66,13 @@ $payload = [
 ];
 
 $ctx = stream_context_create(['http' => [
-    'method'  => 'POST',
-    'header'  => implode("\r\n", [
+    'method'        => 'POST',
+    'header'        => implode("\r\n", [
         'Content-Type: application/json',
         'Authorization: Bearer ' . $token,
     ]),
-    'content' => json_encode($payload),
+    'content'       => json_encode($payload),
+    'ignore_errors' => true,
 ]]);
 
 $url    = 'https://fcm.googleapis.com/v1/projects/' . $sa['project_id'] . '/messages:send';
