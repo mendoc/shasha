@@ -1,0 +1,2 @@
+# Firebase service account (contient une clé privée — ne jamais committer)
+*-firebase-adminsdk-*.json
