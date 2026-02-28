@@ -436,18 +436,33 @@ $(document).ready(function () {
 				const messaging = firebase.messaging();
 
 				const doSubscribe = function() {
-					messaging.getToken({
-						vapidKey: VAPID_KEY,
-						serviceWorkerRegistration: registration
-					}).then(function(token) {
-						if (token) {
-							fetch('subscribe.php', {
-								method: 'POST',
-								headers: { 'Content-Type': 'application/json' },
-								body: JSON.stringify({ token: token })
-							}).catch(function() {});
+					const tryGetToken = function() {
+						return messaging.getToken({
+							vapidKey: VAPID_KEY,
+							serviceWorkerRegistration: registration
+						}).then(function(token) {
+							if (token) {
+								fetch('subscribe.php', {
+									method: 'POST',
+									headers: { 'Content-Type': 'application/json' },
+									body: JSON.stringify({ token: token })
+								}).catch(function() {});
+							}
+						});
+					};
+
+					tryGetToken().catch(function(err) {
+						if (err && err.name === 'AbortError') {
+							// Ancienne souscription push incompatible (migration Firebase 3→8)
+							// Suppression puis nouvel essai avec la clé VAPID
+							registration.pushManager.getSubscription()
+								.then(function(sub) { return sub ? sub.unsubscribe() : Promise.resolve(); })
+								.then(tryGetToken)
+								.catch(console.error);
+						} else {
+							console.error(err);
 						}
-					}).catch(console.error);
+					});
 				};
 
 				if (Notification.permission === 'granted') {
