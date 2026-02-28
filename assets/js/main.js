@@ -23,7 +23,7 @@ $(document).ready(function () {
 		projectId: "nomadic-rush-162313",
 		storageBucket: "nomadic-rush-162313.appspot.com",
 		messagingSenderId: "167801823211",
-		appId: "FIREBASE_APP_ID_HERE"
+		appId: "1:167801823211:web:d788e011834f5528a683ae"
 	};
 
 	// Fonctions
@@ -453,7 +453,9 @@ $(document).ready(function () {
 				if (Notification.permission === 'granted') {
 					doSubscribe();
 				} else if (Notification.permission === 'default') {
-					messaging.requestPermission().then(doSubscribe).catch(function() {});
+					Notification.requestPermission().then(function(permission) {
+						if (permission === 'granted') doSubscribe();
+					});
 				}
 			} catch(e) {
 				// Firebase Messaging non disponible ou non supporté

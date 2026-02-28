@@ -13,8 +13,14 @@ if (!$postKey || !$texte) {
 }
 
 // Envoi d'une notification au topic FCM 'new-posts'
+$corps = mb_strlen($texte) > 100 ? mb_substr($texte, 0, 100) . '…' : $texte;
 $message = [
-    'to'   => '/topics/new-posts',
+    'to'           => '/topics/new-posts',
+    'notification' => [
+        'title' => 'Nouveau post',
+        'body'  => $corps,
+        'icon'  => '/assets/img/logo.png',
+    ],
     'data' => [
         'postKey' => $postKey,
         'texte'   => $texte,
