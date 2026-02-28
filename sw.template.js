@@ -18,10 +18,16 @@ messaging.setBackgroundMessageHandler(function(payload) {
     const texte = payload.data && payload.data.texte ? payload.data.texte : 'Nouveau post publié';
     const postKey = payload.data && payload.data.postKey ? payload.data.postKey : '';
 
+    console.log('[FCM SW] Message reçu en arrière-plan :', payload);
+
     return clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(clientList) {
         // Si un onglet est ouvert, Firebase DB en temps réel gère la notification
-        if (clientList.length > 0) return;
+        if (clientList.length > 0) {
+            console.log('[FCM SW] Onglet actif détecté — notification arrière-plan supprimée');
+            return;
+        }
 
+        console.log('[FCM SW] Notification affichée (arrière-plan) :', texte);
         return self.registration.showNotification('Nouveau post', {
             body: texte.length > 100 ? texte.substring(0, 100) + '…' : texte,
             icon: '/assets/img/logo.png',
@@ -36,6 +42,7 @@ self.addEventListener('notificationclick', function(event) {
     const postKey = event.notification.data && event.notification.data.postKey
         ? event.notification.data.postKey
         : '';
+    console.log('[FCM SW] Notification cliquée, postKey :', postKey || '(aucun)');
     const url = postKey ? '/?notif_post=' + postKey : '/';
 
     event.waitUntil(

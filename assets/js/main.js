@@ -315,12 +315,14 @@ $(document).ready(function () {
 		if (Notification.permission !== "granted") Notification.requestPermission();
 		else {
 			if (!show_notif) return;
+			console.log('[FCM] Notification affichée (premier plan) :', last_message);
 			let notification = new Notification('Nouveau post', {
 				icon: '/assets/img/logo.png',
 				body: last_message,
 			});
 
 			notification.onclick = function () {
+				console.log('[FCM] Notification cliquée (premier plan), postKey :', last_post_key);
 				notification.close();
 				window.focus();
 				if (last_post_key) showPostModal(last_post_key);
@@ -442,11 +444,20 @@ $(document).ready(function () {
 							serviceWorkerRegistration: registration
 						}).then(function(token) {
 							if (token) {
+								console.log('[FCM] Token obtenu :', token);
 								fetch('subscribe.php', {
 									method: 'POST',
 									headers: { 'Content-Type': 'application/json' },
 									body: JSON.stringify({ token: token })
-								}).catch(function() {});
+								}).then(function(r) {
+									return r.json();
+								}).then(function(data) {
+									console.log('[FCM] Abonnement topic new-posts :', data);
+								}).catch(function(err) {
+									console.warn('[FCM] Erreur abonnement topic :', err);
+								});
+							} else {
+								console.warn('[FCM] getToken résolu mais aucun token disponible');
 							}
 						});
 					};
@@ -455,22 +466,32 @@ $(document).ready(function () {
 						if (err && err.name === 'AbortError') {
 							// Ancienne souscription push incompatible (migration Firebase 3→8)
 							// Suppression puis nouvel essai avec la clé VAPID
+							console.warn('[FCM] AbortError — réinitialisation de la souscription push');
 							registration.pushManager.getSubscription()
 								.then(function(sub) { return sub ? sub.unsubscribe() : Promise.resolve(); })
 								.then(tryGetToken)
 								.catch(console.error);
 						} else {
-							console.error(err);
+							console.error('[FCM] Erreur getToken :', err);
 						}
 					});
 				};
 
+				messaging.onMessage(function(payload) {
+					console.log('[FCM] Message reçu en premier plan :', payload);
+				});
+
 				if (Notification.permission === 'granted') {
+					console.log('[FCM] Permission notifications : accordée — tentative d\'abonnement');
 					doSubscribe();
 				} else if (Notification.permission === 'default') {
+					console.log('[FCM] Permission notifications : non demandée — affichage de la demande');
 					Notification.requestPermission().then(function(permission) {
+						console.log('[FCM] Réponse permission notifications :', permission);
 						if (permission === 'granted') doSubscribe();
 					});
+				} else {
+					console.warn('[FCM] Permission notifications : refusée — les notifications push sont désactivées');
 				}
 			} catch(e) {
 				// Firebase Messaging non disponible ou non supporté
