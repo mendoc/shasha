@@ -20,6 +20,7 @@ $opts = [
         'header'  => implode("\r\n", [
             'Content-Type: application/json',
             'Authorization: key=' . FCM_SERVER_KEY,
+            'Content-Length: 0',
         ]),
         'content' => '',
     ],
