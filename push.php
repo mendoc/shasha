@@ -47,18 +47,12 @@ $saPath = __DIR__ . '/nomadic-rush-162313-firebase-adminsdk-o619m-42a9abfa60.jso
 $sa     = json_decode(file_get_contents($saPath), true);
 $token  = getFcmAccessToken($sa);
 
-$corps   = mb_strlen($texte) > 100 ? mb_substr($texte, 0, 100) . '…' : $texte;
+// Message data-only : Firebase ne montre rien automatiquement.
+// C'est le SW (onBackgroundMessage) ou la page (onMessage) qui gère l'affichage.
 $payload = [
     'message' => [
-        'topic'        => 'new-posts',
-        'notification' => [
-            'title' => 'Nouveau post',
-            'body'  => $corps,
-        ],
-        'webpush' => [
-            'notification' => ['icon' => '/assets/img/logo.png'],
-        ],
-        'data' => [
+        'topic' => 'new-posts',
+        'data'  => [
             'postKey' => $postKey,
             'texte'   => $texte,
         ],
