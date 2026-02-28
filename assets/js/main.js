@@ -1,11 +1,6 @@
 $(document).ready(function () {
 	// Variables
 	let delete_mode = false;
-	let show_notif = false;
-	let windowObjectReference;
-	let last_message = "Nouveau post publié sur la plateforme de partage";
-	let last_post_key = null;
-	let last_notified_uid = null;
 	window.name = "post_app_v2";
 
 	// Lazy loading
@@ -311,25 +306,6 @@ $(document).ready(function () {
 		});
 	}
 
-	function notifyMe() {
-		if (Notification.permission !== "granted") Notification.requestPermission();
-		else {
-			if (!show_notif) return;
-			console.log('[FCM] Notification affichée (premier plan) :', last_message);
-			let notification = new Notification('Nouveau post', {
-				icon: '/assets/img/logo.png',
-				body: last_message,
-			});
-
-			notification.onclick = function () {
-				console.log('[FCM] Notification cliquée (premier plan), postKey :', last_post_key);
-				notification.close();
-				window.focus();
-				if (last_post_key) showPostModal(last_post_key);
-			};
-		}
-	}
-
 	let pendingVersion = null;
 
 	function checkUpdate() {
@@ -367,10 +343,6 @@ $(document).ready(function () {
 	});
 
 	//######################## Traitements ############################
-	if (Notification) {
-		if (Notification.permission !== "granted") Notification.requestPermission();
-	}
-
 	checkUpdate();
 	setInterval(checkUpdate, 10000);
 
@@ -463,22 +435,20 @@ $(document).ready(function () {
 					};
 
 					tryGetToken().catch(function(err) {
-						if (err && err.name === 'AbortError') {
-							// Ancienne souscription push incompatible (migration Firebase 3→8)
-							// Suppression puis nouvel essai avec la clé VAPID
-							console.warn('[FCM] AbortError — réinitialisation de la souscription push');
-							registration.pushManager.getSubscription()
-								.then(function(sub) { return sub ? sub.unsubscribe() : Promise.resolve(); })
-								.then(tryGetToken)
-								.catch(console.error);
-						} else {
-							console.error('[FCM] Erreur getToken :', err);
-						}
+						console.error('[FCM] Erreur getToken :', err);
 					});
 				};
 
+				// En premier plan, déléguer l'affichage au SW pour centraliser la gestion
 				messaging.onMessage(function(payload) {
 					console.log('[FCM] Message reçu en premier plan :', payload);
+					const texte = payload.data && payload.data.texte ? payload.data.texte : 'Nouveau post publié';
+					const postKey = payload.data && payload.data.postKey ? payload.data.postKey : '';
+					registration.showNotification('Nouveau post', {
+						body: texte.length > 100 ? texte.substring(0, 100) + '…' : texte,
+						icon: '/assets/img/logo.png',
+						data: { postKey: postKey }
+					});
 				});
 
 				if (Notification.permission === 'granted') {
@@ -535,8 +505,6 @@ $(document).ready(function () {
 
 		if (posts.length > 0) {
 			recentOldestUID = posts[posts.length - 1].uid;
-			last_message = posts[0].texte;
-			last_post_key = posts[0].key;
 		}
 
 		applyPostProcessing();
@@ -546,9 +514,6 @@ $(document).ready(function () {
 			$('#load-more-sentinel').show();
 		}
 
-		if (!document.hasFocus() && posts.length > 0 && posts[0].uid !== last_notified_uid) notifyMe();
-		if (posts.length > 0) last_notified_uid = posts[0].uid;
-		show_notif = true;
 		$("#loader").hide();
 		updateNbChars();
 

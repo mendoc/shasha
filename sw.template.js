@@ -1,5 +1,5 @@
-importScripts('https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js');
-importScripts('https://www.gstatic.com/firebasejs/8.10.1/firebase-messaging.js');
+importScripts('https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/10.14.1/firebase-messaging-compat.js');
 
 firebase.initializeApp({
     apiKey: "AIzaSyC3pt7TQXG32aworFO6Zp4JgrVz1g8jXLQ",
@@ -13,26 +13,17 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// Gestionnaire de messages en arrière-plan (app fermée)
-messaging.setBackgroundMessageHandler(function(payload) {
+// Gestionnaire centralisé — déclenché quand aucun onglet n'est en premier plan
+messaging.onBackgroundMessage(function(payload) {
     const texte = payload.data && payload.data.texte ? payload.data.texte : 'Nouveau post publié';
     const postKey = payload.data && payload.data.postKey ? payload.data.postKey : '';
 
-    console.log('[FCM SW] Message reçu en arrière-plan :', payload);
+    console.log('[FCM SW] Message reçu :', payload);
 
-    return clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(clientList) {
-        // Si un onglet est ouvert, Firebase DB en temps réel gère la notification
-        if (clientList.length > 0) {
-            console.log('[FCM SW] Onglet actif détecté — notification arrière-plan supprimée');
-            return;
-        }
-
-        console.log('[FCM SW] Notification affichée (arrière-plan) :', texte);
-        return self.registration.showNotification('Nouveau post', {
-            body: texte.length > 100 ? texte.substring(0, 100) + '…' : texte,
-            icon: '/assets/img/logo.png',
-            data: { postKey: postKey }
-        });
+    return self.registration.showNotification('Nouveau post', {
+        body: texte.length > 100 ? texte.substring(0, 100) + '…' : texte,
+        icon: '/assets/img/logo.png',
+        data: { postKey: postKey }
     });
 });
 
