@@ -127,6 +127,20 @@ $(document).ready(function () {
 		return `${hour}:${mins}`;
 	}
 
+	// Retourne la date et l'heure complètes pour l'affichage dans la modale
+	function getModalDateFormat(uid) {
+		const d = new Date(uid);
+		const dayNames = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+		const monthNames = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+		const dayName = dayNames[d.getDay()];
+		const day = zeroBefore(d.getDate());
+		const month = monthNames[d.getMonth()];
+		const year = d.getFullYear();
+		const hour = zeroBefore(d.getHours());
+		const mins = zeroBefore(d.getMinutes());
+		return `${dayName} ${day} ${month} ${year} · ${hour}:${mins}`;
+	}
+
 	// Extrait la première URL d'un texte (en nettoyant la ponctuation finale)
 	function extractFirstUrl(text) {
 		const match = text.match(/(https?:\/\/[^\s]+)/);
@@ -597,6 +611,10 @@ $(document).ready(function () {
 				$postText.text(fullText);
 				$postText.linkify({ target: "_blank", className: 'lien text-lighten-2' });
 			}
+			const $timeEl = $modal.find('time');
+			if ($timeEl.length) {
+				$timeEl.text(getModalDateFormat(parseInt($timeEl.attr('datetime'))));
+			}
 			$("#box-details").show();
 		}
 	});
@@ -614,6 +632,7 @@ $(document).ready(function () {
 				const data = snap.val();
 				if (!data) return;
 				const escapedTexte = data.texte.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+				const pubDate = data.uid ? getModalDateFormat(data.uid) : '';
 				const $modal = $("#box-details div.content");
 				$modal.html(
 					`<div class="card-body">
@@ -621,6 +640,7 @@ $(document).ready(function () {
 						<blockquote class="blockquote mb-0">
 							<footer class="blockquote-footer">
 								<button class="btn-copy-link" data-text="${escapedTexte}" title="Copier">${ICON_COPY}</button>
+								${data.uid ? `<small class="text-muted"><cite title="Date de publication"><time datetime="${data.uid}">${pubDate}</time></cite></small>` : ''}
 							</footer>
 						</blockquote>
 					</div>`
@@ -643,6 +663,10 @@ $(document).ready(function () {
 		if (fullText) {
 			$postText.text(fullText);
 			$postText.linkify({ target: "_blank", className: 'lien text-lighten-2' });
+		}
+		const $timeEl = $modal.find('time');
+		if ($timeEl.length) {
+			$timeEl.text(getModalDateFormat(parseInt($timeEl.attr('datetime'))));
 		}
 		$("#box-details").show();
 	}
