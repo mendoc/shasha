@@ -1,12 +1,8 @@
 $(document).ready(function () {
 	// Variables
 	let delete_mode = false;
-	let show_notif = false;
-	let windowObjectReference;
-	let last_message = "Nouveau post publié sur la plateforme de partage";
-	let last_post_key = null;
-	let last_notified_uid = null;
 	window.name = "post_app_v2";
+	window.fcmToken = null;
 
 	// Lazy loading
 	const BATCH_SIZE = 10;
@@ -66,7 +62,7 @@ $(document).ready(function () {
 			fetch('push.php', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ postKey: newPostKey, texte: texte })
+				body: JSON.stringify({ postKey: newPostKey, texte: texte, senderToken: window.fcmToken || '' })
 			}).catch(function() {});
 		});
 
@@ -337,23 +333,6 @@ $(document).ready(function () {
 		});
 	}
 
-	function notifyMe() {
-		if (Notification.permission !== "granted") Notification.requestPermission();
-		else {
-			if (!show_notif) return;
-			let notification = new Notification('Nouveau post', {
-				icon: '/assets/img/logo.png',
-				body: last_message,
-			});
-
-			notification.onclick = function () {
-				notification.close();
-				window.focus();
-				if (last_post_key) showPostModal(last_post_key);
-			};
-		}
-	}
-
 	let pendingVersion = null;
 
 	function checkUpdate() {
@@ -391,10 +370,6 @@ $(document).ready(function () {
 	});
 
 	//######################## Traitements ############################
-	if (Notification) {
-		if (Notification.permission !== "granted") Notification.requestPermission();
-	}
-
 	checkUpdate();
 	setInterval(checkUpdate, 10000);
 
@@ -462,24 +437,65 @@ $(document).ready(function () {
 				const messaging = firebase.messaging();
 
 				const doSubscribe = function() {
-					messaging.getToken({
-						vapidKey: VAPID_KEY,
-						serviceWorkerRegistration: registration
-					}).then(function(token) {
-						if (token) {
-							fetch('subscribe.php', {
-								method: 'POST',
-								headers: { 'Content-Type': 'application/json' },
-								body: JSON.stringify({ token: token })
-							}).catch(function() {});
-						}
-					}).catch(console.error);
+					const tryGetToken = function() {
+						return messaging.getToken({
+							vapidKey: VAPID_KEY,
+							serviceWorkerRegistration: registration
+						}).then(function(token) {
+							if (token) {
+								console.log('[FCM] Token obtenu :', token);
+								window.fcmToken = token;
+								caches.open('fcm-meta').then(function(c) { c.put('/fcm-token', new Response(token)); });
+								fetch('subscribe.php', {
+									method: 'POST',
+									headers: { 'Content-Type': 'application/json' },
+									body: JSON.stringify({ token: token })
+								}).then(function(r) {
+									return r.json();
+								}).then(function(data) {
+									console.log('[FCM] Abonnement topic new-posts :', data);
+								}).catch(function(err) {
+									console.warn('[FCM] Erreur abonnement topic :', err);
+								});
+							} else {
+								console.warn('[FCM] getToken résolu mais aucun token disponible');
+							}
+						});
+					};
+
+					tryGetToken().catch(function(err) {
+						console.error('[FCM] Erreur getToken :', err);
+					});
 				};
 
+				// En premier plan, déléguer l'affichage au SW pour centraliser la gestion
+				messaging.onMessage(function(payload) {
+					console.log('[FCM] Message reçu en premier plan :', payload);
+					const senderToken = payload.data && payload.data.senderToken ? payload.data.senderToken : '';
+					if (senderToken && senderToken === window.fcmToken) {
+						console.log('[FCM] Notification ignorée (expéditeur = appareil local)');
+						return;
+					}
+					const texte = payload.data && payload.data.texte ? payload.data.texte : 'Nouveau post publié';
+					const postKey = payload.data && payload.data.postKey ? payload.data.postKey : '';
+					registration.showNotification('Nouveau post', {
+						body: texte.length > 100 ? texte.substring(0, 100) + '…' : texte,
+						icon: '/assets/img/logo.png',
+						data: { postKey: postKey }
+					});
+				});
+
 				if (Notification.permission === 'granted') {
+					console.log('[FCM] Permission notifications : accordée — tentative d\'abonnement');
 					doSubscribe();
 				} else if (Notification.permission === 'default') {
-					messaging.requestPermission().then(doSubscribe).catch(function() {});
+					console.log('[FCM] Permission notifications : non demandée — affichage de la demande');
+					Notification.requestPermission().then(function(permission) {
+						console.log('[FCM] Réponse permission notifications :', permission);
+						if (permission === 'granted') doSubscribe();
+					});
+				} else {
+					console.warn('[FCM] Permission notifications : refusée — les notifications push sont désactivées');
 				}
 			} catch(e) {
 				// Firebase Messaging non disponible ou non supporté
@@ -523,8 +539,6 @@ $(document).ready(function () {
 
 		if (posts.length > 0) {
 			recentOldestUID = posts[posts.length - 1].uid;
-			last_message = posts[0].texte;
-			last_post_key = posts[0].key;
 		}
 
 		applyPostProcessing();
@@ -534,9 +548,6 @@ $(document).ready(function () {
 			$('#load-more-sentinel').show();
 		}
 
-		if (!document.hasFocus() && posts.length > 0 && posts[0].uid !== last_notified_uid) notifyMe();
-		if (posts.length > 0) last_notified_uid = posts[0].uid;
-		show_notif = true;
 		$("#loader").hide();
 		updateNbChars();
 

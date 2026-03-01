@@ -1,5 +1,5 @@
-importScripts('https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js');
-importScripts('https://www.gstatic.com/firebasejs/8.10.1/firebase-messaging.js');
+importScripts('https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/10.14.1/firebase-messaging-compat.js');
 
 firebase.initializeApp({
     apiKey: "AIzaSyC3pt7TQXG32aworFO6Zp4JgrVz1g8jXLQ",
@@ -13,15 +13,23 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// Gestionnaire de messages en arrière-plan (app fermée)
-messaging.setBackgroundMessageHandler(function(payload) {
-    const texte = payload.data && payload.data.texte ? payload.data.texte : 'Nouveau post publié';
-    const postKey = payload.data && payload.data.postKey ? payload.data.postKey : '';
+// Gestionnaire centralisé — déclenché quand aucun onglet n'est en premier plan
+messaging.onBackgroundMessage(function(payload) {
+    const senderToken = payload.data && payload.data.senderToken ? payload.data.senderToken : '';
 
-    return clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(clientList) {
-        // Si un onglet est ouvert, Firebase DB en temps réel gère la notification
-        if (clientList.length > 0) return;
+    console.log('[FCM SW] Message reçu :', payload);
 
+    return caches.open('fcm-meta').then(function(cache) {
+        return cache.match('/fcm-token');
+    }).then(function(response) {
+        return response ? response.text() : null;
+    }).then(function(ownToken) {
+        if (senderToken && ownToken && senderToken === ownToken) {
+            console.log('[FCM SW] Notification ignorée (expéditeur = appareil local)');
+            return;
+        }
+        const texte = payload.data && payload.data.texte ? payload.data.texte : 'Nouveau post publié';
+        const postKey = payload.data && payload.data.postKey ? payload.data.postKey : '';
         return self.registration.showNotification('Nouveau post', {
             body: texte.length > 100 ? texte.substring(0, 100) + '…' : texte,
             icon: '/assets/img/logo.png',
@@ -36,6 +44,7 @@ self.addEventListener('notificationclick', function(event) {
     const postKey = event.notification.data && event.notification.data.postKey
         ? event.notification.data.postKey
         : '';
+    console.log('[FCM SW] Notification cliquée, postKey :', postKey || '(aucun)');
     const url = postKey ? '/?notif_post=' + postKey : '/';
 
     event.waitUntil(
@@ -67,8 +76,9 @@ const assets = [
     "/assets/js/main.js",
 ];
 
-// install event
+// install event — skipWaiting pour activer immédiatement sans attendre la fermeture des onglets
 self.addEventListener("install", evt => {
+    self.skipWaiting();
     evt.waitUntil(
         caches.open(cacheName).then((cache) => {
             console.log("Enregistrement des assets dans le cache");
@@ -77,14 +87,14 @@ self.addEventListener("install", evt => {
     );
 });
 
-// activate event
+// activate event — claim() pour prendre le contrôle de tous les onglets ouverts
 self.addEventListener("activate", evt => {
     evt.waitUntil(
-        caches.keys().then(keys => {
-            return Promise.all(keys
-                .filter(key => key !== cacheName)
-                .map(key => caches.delete(key))
-            );
-        })
+        Promise.all([
+            self.clients.claim(),
+            caches.keys().then(keys => Promise.all(
+                keys.filter(key => key !== cacheName).map(key => caches.delete(key))
+            ))
+        ])
     );
 });
