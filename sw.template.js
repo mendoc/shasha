@@ -1,8 +1,3 @@
-// Listener brut — confirme que le SW reçoit bien l'événement push du navigateur
-self.addEventListener('push', function(event) {
-    console.log('[SW] Événement push brut reçu :', event.data ? event.data.text() : '(sans données)');
-});
-
 importScripts('https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.14.1/firebase-messaging-compat.js');
 
