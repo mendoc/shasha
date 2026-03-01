@@ -1,9 +1,10 @@
 <?php
 header('Content-Type: application/json');
 
-$input   = json_decode(file_get_contents('php://input'), true);
-$postKey = $input['postKey'] ?? '';
-$texte   = $input['texte']   ?? '';
+$input       = json_decode(file_get_contents('php://input'), true);
+$postKey     = $input['postKey']     ?? '';
+$texte       = $input['texte']       ?? '';
+$senderToken = $input['senderToken'] ?? '';
 
 if (!$postKey || !$texte) {
     http_response_code(400);
@@ -53,8 +54,9 @@ $payload = [
     'message' => [
         'topic' => 'new-posts',
         'data'  => [
-            'postKey' => $postKey,
-            'texte'   => $texte,
+            'postKey'     => $postKey,
+            'texte'       => $texte,
+            'senderToken' => $senderToken,
         ],
     ],
 ];

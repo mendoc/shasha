@@ -2,6 +2,7 @@ $(document).ready(function () {
 	// Variables
 	let delete_mode = false;
 	window.name = "post_app_v2";
+	window.fcmToken = null;
 
 	// Lazy loading
 	const BATCH_SIZE = 10;
@@ -61,7 +62,7 @@ $(document).ready(function () {
 			fetch('push.php', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ postKey: newPostKey, texte: texte })
+				body: JSON.stringify({ postKey: newPostKey, texte: texte, senderToken: window.fcmToken || '' })
 			}).catch(function() {});
 		});
 
@@ -417,6 +418,8 @@ $(document).ready(function () {
 						}).then(function(token) {
 							if (token) {
 								console.log('[FCM] Token obtenu :', token);
+								window.fcmToken = token;
+								caches.open('fcm-meta').then(function(c) { c.put('/fcm-token', new Response(token)); });
 								fetch('subscribe.php', {
 									method: 'POST',
 									headers: { 'Content-Type': 'application/json' },
@@ -442,6 +445,11 @@ $(document).ready(function () {
 				// En premier plan, déléguer l'affichage au SW pour centraliser la gestion
 				messaging.onMessage(function(payload) {
 					console.log('[FCM] Message reçu en premier plan :', payload);
+					const senderToken = payload.data && payload.data.senderToken ? payload.data.senderToken : '';
+					if (senderToken && senderToken === window.fcmToken) {
+						console.log('[FCM] Notification ignorée (expéditeur = appareil local)');
+						return;
+					}
 					const texte = payload.data && payload.data.texte ? payload.data.texte : 'Nouveau post publié';
 					const postKey = payload.data && payload.data.postKey ? payload.data.postKey : '';
 					registration.showNotification('Nouveau post', {

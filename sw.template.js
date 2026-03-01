@@ -15,15 +15,26 @@ const messaging = firebase.messaging();
 
 // Gestionnaire centralisé — déclenché quand aucun onglet n'est en premier plan
 messaging.onBackgroundMessage(function(payload) {
-    const texte = payload.data && payload.data.texte ? payload.data.texte : 'Nouveau post publié';
-    const postKey = payload.data && payload.data.postKey ? payload.data.postKey : '';
+    const senderToken = payload.data && payload.data.senderToken ? payload.data.senderToken : '';
 
     console.log('[FCM SW] Message reçu :', payload);
 
-    return self.registration.showNotification('Nouveau post', {
-        body: texte.length > 100 ? texte.substring(0, 100) + '…' : texte,
-        icon: '/assets/img/logo.png',
-        data: { postKey: postKey }
+    return caches.open('fcm-meta').then(function(cache) {
+        return cache.match('/fcm-token');
+    }).then(function(response) {
+        return response ? response.text() : null;
+    }).then(function(ownToken) {
+        if (senderToken && ownToken && senderToken === ownToken) {
+            console.log('[FCM SW] Notification ignorée (expéditeur = appareil local)');
+            return;
+        }
+        const texte = payload.data && payload.data.texte ? payload.data.texte : 'Nouveau post publié';
+        const postKey = payload.data && payload.data.postKey ? payload.data.postKey : '';
+        return self.registration.showNotification('Nouveau post', {
+            body: texte.length > 100 ? texte.substring(0, 100) + '…' : texte,
+            icon: '/assets/img/logo.png',
+            data: { postKey: postKey }
+        });
     });
 });
 
