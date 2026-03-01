@@ -336,7 +336,7 @@ $(document).ready(function () {
 	let pendingVersion = null;
 
 	function checkUpdate() {
-		fetch("version.json").then(r => r.json()).then(versionJson => {
+		fetch("version.json?t=" + Date.now()).then(r => r.json()).then(versionJson => {
 			const serverVersion = versionJson.version;
 			const storedVersion = localStorage.getItem("app-version");
 
