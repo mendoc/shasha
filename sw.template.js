@@ -1,3 +1,8 @@
+// Listener brut — confirme que le SW reçoit bien l'événement push du navigateur
+self.addEventListener('push', function(event) {
+    console.log('[SW] Événement push brut reçu :', event.data ? event.data.text() : '(sans données)');
+});
+
 importScripts('https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.14.1/firebase-messaging-compat.js');
 
@@ -65,8 +70,9 @@ const assets = [
     "/assets/js/main.js",
 ];
 
-// install event
+// install event — skipWaiting pour activer immédiatement sans attendre la fermeture des onglets
 self.addEventListener("install", evt => {
+    self.skipWaiting();
     evt.waitUntil(
         caches.open(cacheName).then((cache) => {
             console.log("Enregistrement des assets dans le cache");
@@ -75,14 +81,14 @@ self.addEventListener("install", evt => {
     );
 });
 
-// activate event
+// activate event — claim() pour prendre le contrôle de tous les onglets ouverts
 self.addEventListener("activate", evt => {
     evt.waitUntil(
-        caches.keys().then(keys => {
-            return Promise.all(keys
-                .filter(key => key !== cacheName)
-                .map(key => caches.delete(key))
-            );
-        })
+        Promise.all([
+            self.clients.claim(),
+            caches.keys().then(keys => Promise.all(
+                keys.filter(key => key !== cacheName).map(key => caches.delete(key))
+            ))
+        ])
     );
 });
