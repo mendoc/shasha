@@ -827,6 +827,27 @@ $(document).ready(function () {
 		}
 	});
 
+	// Met à jour l'en-tête de jour sticky en fonction du scroll
+	function updateStickyDayHeader() {
+		var scrollTop = $(window).scrollTop();
+		var $header = $('#sticky-day-header');
+		var activeLabel = null;
+
+		$('.day-group').each(function () {
+			var sepTop = $(this).find('.day-separator').offset().top;
+			if (sepTop < scrollTop + 10) {
+				activeLabel = $(this).find('.day-separator span').text();
+			}
+		});
+
+		if (activeLabel) {
+			$header.find('span').text(activeLabel);
+			$header.addClass('visible');
+		} else {
+			$header.removeClass('visible');
+		}
+	}
+
 	// Bouton retour en haut de la page
 	$(window).scroll(function () {
 		if ($(this).scrollTop() > 300) {
@@ -834,6 +855,7 @@ $(document).ready(function () {
 		} else {
 			$('#btn-back-to-top').hide();
 		}
+		updateStickyDayHeader();
 	});
 
 	$('#btn-back-to-top').click(function () {
