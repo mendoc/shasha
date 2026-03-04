@@ -425,6 +425,40 @@ function taille_format($taille)
 			display: block;
 		}
 
+		/* En-tête de jour sticky */
+		#sticky-day-header {
+			position: fixed;
+			top: 0;
+			left: 0;
+			right: 0;
+			z-index: 500;
+			display: flex;
+			justify-content: center;
+			pointer-events: none;
+			opacity: 0;
+			transition: opacity .2s;
+		}
+
+		#sticky-day-header.visible {
+			opacity: 1;
+		}
+
+		#sticky-day-header span {
+			background: rgba(255, 255, 255, 0.92);
+			backdrop-filter: blur(4px);
+			-webkit-backdrop-filter: blur(4px);
+			border: 1px solid #dee2e6;
+			border-top: none;
+			border-radius: 0 0 10px 10px;
+			padding: 2px 14px 4px;
+			font-size: .72rem;
+			font-weight: 600;
+			color: #6c757d;
+			text-transform: uppercase;
+			letter-spacing: .6px;
+			box-shadow: 0 2px 6px rgba(0, 0, 0, .08);
+		}
+
 		/* Config modal */
 		#box-config {
 			position: fixed;
@@ -647,6 +681,7 @@ function taille_format($taille)
 			</div>
 		</div>
 	</div>
+	<div id="sticky-day-header"><span></span></div>
 	<button id="btn-back-to-top" title="Retour en haut de la page">
 		<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
 			<path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7" />
