@@ -148,6 +148,12 @@ function taille_format($taille)
 		body {
 			font-family: Arial, sans-serif;
 			margin: 0 auto;
+			background-color: #f4f6f9;
+		}
+
+		.card {
+			box-shadow: 0 2px 8px rgba(0, 0, 0, .08);
+			border: 1px solid rgba(0, 0, 0, .08);
 		}
 
 		.delete {
